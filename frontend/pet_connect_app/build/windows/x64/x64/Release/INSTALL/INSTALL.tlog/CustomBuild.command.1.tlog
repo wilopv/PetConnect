@@ -1,0 +1,10 @@
+^C:\USERS\USUARIO\DESKTOP\PETCONNECT\FRONTEND\PET_CONNECT_APP\BUILD\WINDOWS\X64\CMAKEFILES\D2D28C905632D0BE2BD3AB26FABB5E23\INSTALL_FORCE.RULE
+setlocal
+cd .
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
