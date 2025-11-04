@@ -1,61 +1,33 @@
-# Miscellaneous
-*.class
-*.log
-*.pyc
-*.swp
-.DS_Store
-.atom/
-.build/
-.buildlog/
-.history
-.svn/
-.swiftpm/
-migrate_working_dir/
-
-
-# IntelliJ related
-*.iml
-*.ipr
-*.iws
+# IDE files
 .idea/
+*.iml
+.vscode/
 
+# OS Files
+.DS_Store
+Thumbs.db
 
-# Flutter/Dart/Pub related
-**/doc/api/
+# Logs
+*.log
+
+# Frontend (Flutter)
+# Ignorar archivos y carpetas generados por Flutter
 .dart_tool/
 .flutter-plugins-dependencies
-.pub-cache/
-.pub/
-/build/
-/coverage/
+pubspec.lock      
+build/
 
+# Ignorar archivos de plataformas
+frontend/pet_connect_app/android/
+frontend/pet_connect_app/ios/
+frontend/pet_connect_app/linux/
+frontend/pet_connect_app/macos/
+frontend/pet_connect_app/windows/
+frontend/pet_connect_app/.metadata
 
-# Symbolication related
-app.*.symbols
-
-# Obfuscation related
-app.*.map.json
-
-# Android Studio and ios will place build artifacts here
-**/android/.gradle/
-**/android/local.properties
-**/android/app/build/
-**/android/build/
-**/ios/Flutter/.last_build_id
-**/ios/Flutter/App.framework
-**/ios/Flutter/Flutter.framework
-**/ios/.symlinks/
-**/ios/Pods/
-**/ios/Runner/GeneratedPluginRegistrant.*
-
-# Environment files
-venv/
-env/
-.venv/
-ENV/
-env.bak/
-venv.bak/
+# Backend
+# Ignorar archivos y carpetas del backend
+/backend/env/
+# Secrets
 .env
-*.env
-.env.*
-*.env.*
+*.env           

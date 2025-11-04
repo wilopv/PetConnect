@@ -14,6 +14,8 @@ from jose import JWTError, jwt
 
 from .database import get_supabase_client
 from .models import LoginRequest, SignUpRequest, TokenResponse
+from supabase_auth.errors import AuthApiError
+
 
 load_dotenv()
 
@@ -73,9 +75,30 @@ def login(payload: LoginRequest):
     Descripcion: Autentica al usuario y emite un token nuevo.
     """
     client = get_supabase_client()
-    result = client.auth.sign_in_with_password({"email": payload.email, "password": payload.password})
+    try:
+        result = client.auth.sign_in_with_password(
+            {"email": payload.email, "password": payload.password}
+        )
+    except AuthApiError:
+        # Supabase rechaz las credenciales
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email o contraseña incorrectos",
+        )
+    except Exception:
+        # error inesperado de Supabase u otra cosa
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error interno al iniciar sesión",
+        )
     session = result.session
-    if not session or not session.user:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
-    token = create_access_token({"sub": session.user.id})
+    user = result.user
+    if not user or not session:
+        # Cuando Supabase no lanza excepción pero no hay sesión/usuario
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email o contraseña incorrectos",
+        )
+
+    token = create_access_token({"sub": user.id}) 
     return TokenResponse(access_token=token, token_type="bearer")
