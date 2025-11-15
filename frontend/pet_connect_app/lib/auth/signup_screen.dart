@@ -3,10 +3,66 @@
 /// Descripción:
 /// Pantalla de creación de cuenta de la aplicación.  
 ///  
-import 'package:flutter/material.dart';
 
-class SignUpScreen extends StatelessWidget {
+import 'package:flutter/material.dart';
+import '../lib/services/auth_service.dart';
+
+class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
+
+  @override
+  State<SignUpScreen> createState() => _SignUpScreenState();
+}
+
+class _SignUpScreenState extends State<SignUpScreen> {
+  // CONTROLADORES
+  final _usernameController = TextEditingController();   // usuario visible
+  final _emailController = TextEditingController();      // email necesario
+  final _passwordController = TextEditingController();
+  final _postalController = TextEditingController();
+  final _petNameController = TextEditingController();
+
+  String? _petType;
+
+  Future<void> _handleSignup() async {
+    final username = _usernameController.text.trim();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (username.isEmpty || email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Completa usuario, email y contraseña')),
+      );
+      return;
+    }
+
+    // Llamada al backend
+    final error = await AuthService.instance.signup(email, password, username);
+
+    if (!mounted) return;
+
+    if (error == null) {
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        '/home',
+        (route) => false,
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error)),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _postalController.dispose();
+    _petNameController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,62 +74,68 @@ class SignUpScreen extends StatelessWidget {
       ),
       body: ListView(
         padding: const EdgeInsets.all(24.0),
-        children: const [
-          TextField(decoration: InputDecoration(labelText: 'Usuario')),
-          SizedBox(height: 16),
+        children: [
           TextField(
-            decoration: InputDecoration(labelText: 'Contrase\u00f1a'),
+            controller: _usernameController,
+            decoration: const InputDecoration(labelText: 'Nombre de Usuario'),
+          ),
+          const SizedBox(height: 16),
+
+          TextField(
+            controller: _emailController,
+            decoration: const InputDecoration(labelText: 'Email'),
+            keyboardType: TextInputType.emailAddress,
+          ),
+          const SizedBox(height: 16),
+
+          TextField(
+            controller: _passwordController,
+            decoration: const InputDecoration(labelText: 'Contraseña'),
             obscureText: true,
           ),
-          SizedBox(height: 16),
-          TextField(decoration: InputDecoration(labelText: 'C\u00f3digo Postal')),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
+
           TextField(
-            decoration: InputDecoration(labelText: 'Nombre de tu Mascota'),
+            controller: _postalController,
+            decoration: const InputDecoration(labelText: 'Código Postal'),
           ),
-          SizedBox(height: 16),
-          _PetTypeDropdown(),
-          SizedBox(height: 32),
-          _RegisterButton(),
+          const SizedBox(height: 16),
+
+          TextField(
+            controller: _petNameController,
+            decoration: const InputDecoration(labelText: 'Nombre de tu Mascota'),
+          ),
+          const SizedBox(height: 16),
+
+          DropdownButtonFormField<String>(
+            value: _petType,
+            decoration: const InputDecoration(labelText: 'Tipo de Mascota'),
+            items: const ['Perro', 'Gato', 'Pajaro', 'Reptil', 'Otro']
+                .map((tipo) => DropdownMenuItem(
+                      value: tipo,
+                      child: Text(tipo),
+                    ))
+                .toList(),
+            onChanged: (v) => setState(() => _petType = v),
+          ),
+          const SizedBox(height: 32),
+
+          _RegisterButton(onPressed: _handleSignup),
         ],
       ),
     );
   }
 }
 
-class _PetTypeDropdown extends StatelessWidget {
-  const _PetTypeDropdown();
-
-  @override
-  Widget build(BuildContext context) {
-    return DropdownButtonFormField<String>(
-      decoration: const InputDecoration(labelText: 'Tipo de Mascota'),
-      items: const ['Perro', 'Gato', 'Pajaro', 'Reptil', 'Otro']
-          .map(
-            (tipo) => DropdownMenuItem<String>(
-              value: tipo,
-              child: Text(tipo),
-            ),
-          )
-          .toList(),
-      onChanged: (_) {},
-    );
-  }
-}
-
 class _RegisterButton extends StatelessWidget {
-  const _RegisterButton();
+  final VoidCallback onPressed;
+
+  const _RegisterButton({required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
-      onPressed: () {
-        Navigator.pushNamedAndRemoveUntil(
-          context,
-          '/home',
-          (route) => false,
-        );
-      },
+      onPressed: onPressed,
       child: const Text('Registrarse'),
     );
   }

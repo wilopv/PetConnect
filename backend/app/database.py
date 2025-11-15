@@ -11,9 +11,7 @@ load_dotenv()
 
 SUPABASE_URL = os.environ["SUPABASE_URL"]
 SUPABASE_SERVICE_ROLE_KEY = os.environ["SUPABASE_SERVICE_ROLE_KEY"]
-
-_supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
-
+SUPABASE_KEY = os.environ["SUPABASE_KEY"]
 
 def get_supabase_client() -> Client:
     """
@@ -21,4 +19,13 @@ def get_supabase_client() -> Client:
     Fecha: 02-11-2025
     Descripcion: Retorna el cliente Supabase inicializado.
     """
-    return _supabase
+    return create_client(SUPABASE_URL, SUPABASE_KEY)
+
+def get_service_client() -> Client:
+    """
+    Autor: Wilbert Lopez Veras
+    Fecha: 02-11-2025
+    Descripcion: Retorna un cliente Supabase inicializado con la clave service_role.
+    Este cliente tiene permisos administrativos y no debe usarse fuera del backend.
+    """
+    return create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)

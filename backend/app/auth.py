@@ -12,7 +12,7 @@ from fastapi import APIRouter, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 
-from .database import get_supabase_client
+from .database import get_supabase_client, get_service_client
 from .models import LoginRequest, SignUpRequest, TokenResponse
 from supabase_auth.errors import AuthApiError
 
@@ -53,18 +53,65 @@ def verify_access_token(token: str) -> dict:
 
 @router.post("/signup", response_model=TokenResponse)
 def signup(payload: SignUpRequest):
-    """
-    Autor: Wilbert Lopez Veras
-    Fecha: 02-11-2025
-    Descripcion: Crea un usuario en Supabase y devuelve su token.
-    """
-    client = get_supabase_client()
-    result = client.auth.sign_up({"email": payload.email, "password": payload.password})
+    client = get_supabase_client() # cliente publico
+    service = get_service_client()  # cliente admin
+
+    # 1. Validar email único
+    users = service.auth.admin.list_users()
+    for u in users:
+        if u.email and u.email.lower() == payload.email.lower():
+            raise HTTPException(
+                status_code=400,
+                detail="Este correo ya está registrado."
+            )
+        
+    # 2. Validar username único 
+    existing_username = service.table("profiles")\
+        .select("username")\
+        .eq("username", payload.username)\
+        .execute()
+
+    if existing_username.data:
+        raise HTTPException(
+            status_code=400,
+            detail="Este nombre de usuario ya está en uso."
+        )
+
+    try:
+        result = client.auth.sign_up({
+            "email": payload.email,
+            "password": payload.password
+        })
+    except AuthApiError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
     user = result.user
-    if not user:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Signup failed")
+    if user is None:
+        raise HTTPException(status_code=400, detail="No se pudo crear la cuenta.")
+
+    try:
+        service.table("profiles").insert({
+            "id": user.id,
+            "email": payload.email,
+            "username": payload.username,
+            "postal_code": payload.postal_code,
+            "pet_name": payload.pet_name,
+            "pet_type": payload.pet_type
+        }).execute()
+    except Exception:
+        service.auth.admin.delete_user(user.id)
+        raise HTTPException(
+            status_code=400,
+            detail="No se pudo crear el perfil del usuario."
+        )
+
     token = create_access_token({"sub": user.id})
     return TokenResponse(access_token=token, token_type="bearer")
+
+
+
 
 
 @router.post("/login", response_model=TokenResponse)
@@ -75,6 +122,22 @@ def login(payload: LoginRequest):
     Descripcion: Autentica al usuario y emite un token nuevo.
     """
     client = get_supabase_client()
+    service = get_service_client()
+    all_users = service.auth.admin.list_users()
+
+    user_match = None
+    for u in all_users:
+        if u.email and u.email.lower() == payload.email.lower():
+            user_match = u
+            break
+
+    # Verificar si el email está confirmado
+    if user_match and user_match.email_confirmed_at is None:
+        raise HTTPException(
+            status_code=400,
+            detail="Debes confirmar tu correo antes de iniciar sesión."
+        )
+
     try:
         result = client.auth.sign_in_with_password(
             {"email": payload.email, "password": payload.password}

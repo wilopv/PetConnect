@@ -28,6 +28,8 @@ frontend/pet_connect_app/.metadata
 # Backend
 # Ignorar archivos y carpetas del backend
 /backend/env/
+/backend/__pycache__/
+/backend/*.pyc
 # Secrets
 .env
 *.env           

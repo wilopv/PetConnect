@@ -3,6 +3,7 @@
 # Descripción: Archivo con definición de los modelos Pydantic para solicitudes y respuestas
 # relacionadas con la autenticación.
 
+from typing import Optional
 from pydantic import BaseModel, EmailStr
 
 
@@ -13,8 +14,13 @@ class SignUpRequest(BaseModel):
     Descripcion: Modelo para peticion de registro de usuario.
     """
 
-    email: EmailStr
+    email: str
     password: str
+    username: str
+    postal_code: Optional[str] = None
+    pet_name: Optional[str] = None
+    pet_type: Optional[str] = None
+
 
 
 class LoginRequest(BaseModel):
