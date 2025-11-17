@@ -13,7 +13,7 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 
 from .database import get_supabase_client, get_service_client
-from .models import LoginRequest, SignUpRequest, TokenResponse
+from .models import LoginRequest, SignUpRequest, TokenResponse, UserResponse
 from supabase_auth.errors import AuthApiError
 
 
@@ -98,7 +98,8 @@ def signup(payload: SignUpRequest):
             "username": payload.username,
             "postal_code": payload.postal_code,
             "pet_name": payload.pet_name,
-            "pet_type": payload.pet_type
+            "pet_type": payload.pet_type,
+            "role": "user"
         }).execute()
     except Exception:
         service.auth.admin.delete_user(user.id)
@@ -108,8 +109,15 @@ def signup(payload: SignUpRequest):
         )
 
     token = create_access_token({"sub": user.id})
-    return TokenResponse(access_token=token, token_type="bearer")
-
+    return TokenResponse(
+        access_token=token,
+        token_type="bearer",
+        user=UserResponse(
+            id=user.id,
+            email=payload.email,
+            role="user"
+        )
+    )
 
 
 
@@ -162,6 +170,31 @@ def login(payload: LoginRequest):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Email o contraseña incorrectos",
         )
+    
+        # Obtener el rol desde profiles
+    try:
+        profile = (
+            client.table("profiles")
+            .select("role")
+            .eq("id", user.id)
+            .single()
+            .execute()
+        )
+        role = profile.data["role"]
+    except Exception:
+        role = "user"  # rol por defecto si hay error
+
+    
 
     token = create_access_token({"sub": user.id}) 
-    return TokenResponse(access_token=token, token_type="bearer")
+    return TokenResponse(
+        access_token=token,
+        token_type="bearer",
+        user=UserResponse(
+            id=user.id,
+            email=user.email,
+            role=role
+        )
+    )
+
+

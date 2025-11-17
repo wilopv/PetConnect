@@ -4,7 +4,9 @@
 /// Pantalla de inicio de sesión de la aplicación.   
 
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:pet_connect_app/lib/services/auth_service.dart';
+
 
 import '../theme/app_colors.dart';
 import '../widgets/logo_widget.dart';
@@ -18,6 +20,8 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final _storage = const FlutterSecureStorage();
+  
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
@@ -97,7 +101,13 @@ class _LoginScreenState extends State<LoginScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Inicio de sesión exitoso")),
       );
-      Navigator.pushNamedAndRemoveUntil(context, '/home', (_) => false);
+      final role = await _storage.read(key: 'role');
+
+      if (role == "moderator") {
+        Navigator.pushReplacementNamed(context, "/moderatorHome");
+      } else {
+        Navigator.pushReplacementNamed(context, "/home");
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(error)),

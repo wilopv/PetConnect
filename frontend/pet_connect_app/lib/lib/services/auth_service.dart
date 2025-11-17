@@ -13,6 +13,8 @@ class AuthService {
   static final instance = AuthService._();
 
   final _storage = const FlutterSecureStorage();
+
+  // Funcion de login
   Future<String?> login(String email, String password) async {
     final url = Uri.parse('${ApiConfig.baseUrl}/auth/login');
 
@@ -25,12 +27,21 @@ class AuthService {
 
       if(res.statusCode == 200) {
         final data = jsonDecode(res.body);
+
+        // Guardar token
         final token = data['access_token'] as String;
-        
-        if(token != null) {
-          await _storage.write(key: 'access_token', value: token);
-        }
+        await _storage.write(key: 'access_token', value: token);
+
+        // Guardar rol
+        final role = data['user']['role'] as String;
+        await _storage.write(key: 'role', value: role);
+
+        // Guardar ID
+        final userId = data['user']['id'] as String;
+        await _storage.write(key: 'user_id', value: userId);
+
         return null; // null significa que todo OK
+
 
       } else {
         final data = jsonDecode(res.body);
@@ -41,6 +52,7 @@ class AuthService {
     }
   }
 
+  // Funcion de registro
   Future<String?> signup(String email, String password, String username) async {
     final url = Uri.parse('${ApiConfig.baseUrl}/auth/signup');
 
@@ -57,8 +69,19 @@ class AuthService {
 
       if(res.statusCode == 200) {
         final data = jsonDecode(res.body);
+
+        // Guardar token
         final token = data['access_token'] as String;
         await _storage.write(key: 'access_token', value: token);
+
+        // Guardar rol
+        final role = data['user']['role'] as String;
+        await _storage.write(key: 'role', value: role);
+
+        // Guardar ID
+        final userId = data['user']['id'] as String;
+        await _storage.write(key: 'user_id', value: userId);
+
         return null; // null significa que todo OK
       } else {
         final data = jsonDecode(res.body);

@@ -34,6 +34,11 @@ class LoginRequest(BaseModel):
     password: str
 
 
+class UserResponse(BaseModel):
+    id: str
+    email: str
+    role: str
+
 class TokenResponse(BaseModel):
     """
     Autor: Wilbert Lopez Veras
@@ -43,3 +48,5 @@ class TokenResponse(BaseModel):
 
     access_token: str
     token_type: str = "bearer"
+    user: UserResponse
+

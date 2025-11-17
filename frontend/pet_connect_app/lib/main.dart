@@ -10,6 +10,7 @@ import 'auth/login_screen.dart';
 import 'auth/signup_screen.dart';
 import 'theme/app_theme.dart';
 import 'user/main_wrapper.dart';
+import 'admin/admin_user_list_screen.dart';
 
 void main() {
   runApp(const PetConnectApp());
@@ -29,6 +30,7 @@ class PetConnectApp extends StatelessWidget {
         '/login': (context) => const LoginScreen(),
         '/signup': (context) => const SignUpScreen(),
         '/home': (context) => const MainWrapper(initialIndex: 0),
+        '/moderatorHome': (context) => const AdminUserListScreen(),
       },
     );
   }
