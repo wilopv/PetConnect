@@ -2,19 +2,89 @@
 /// Fecha de creación: 18 de noviembre de 2025
 /// Descripción:
 /// Pantalla para perfil del usuario en la aplicación.
-/// 
 
 import 'package:flutter/material.dart';
-
 import '../../../theme/app_colors.dart';
-
 import 'package:pet_connect_app/lib/services/auth_service.dart';
+import 'package:pet_connect_app/lib/services/profile_service.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
   @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  Map<String, dynamic>? profile;
+  bool loading = true;
+  String? error;
+
+  ProfileService? profileService;
+
+  @override
+  void initState() {
+    super.initState();
+    _initProfile();
+  }
+
+  Future<void> _initProfile() async {
+    final token = await AuthService.instance.getToken();
+
+    if (!mounted) return;
+
+    if (token == null) {
+      setState(() {
+        loading = false;
+        error = 'No hay sesión activa';
+      });
+      Navigator.pushNamedAndRemoveUntil(context, '/login', (_) => false);
+      return;
+    }
+
+    profileService = ProfileService(
+      baseUrl: "http://localhost:8000", 
+      token: token,
+    );
+
+    await loadProfile();
+  }
+
+  Future<void> loadProfile() async {
+    if (profileService == null) return;
+
+    try {
+      final data = await profileService!.getMyProfile();
+      setState(() {
+        profile = data;
+        loading = false;
+      });
+    } catch (e) {
+      setState(() {
+        error = e.toString();
+        loading = false;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (loading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (error != null) {
+      return Scaffold(
+        body: Center(child: Text("Error: $error")),
+      );
+    }
+
+    final petName = profile!['pet_name'] ?? 'Mi mascota';
+    final username = (profile!['username'] ?? '').toString().trim();
+    final titleText = username.isNotEmpty ? '$petName (@$username)' : petName;
+
     return Scaffold(
       body: DefaultTabController(
         length: 2,
@@ -28,30 +98,53 @@ class ProfileScreen extends StatelessWidget {
                 backgroundColor: Colors.white,
                 flexibleSpace: FlexibleSpaceBar(
                   centerTitle: false,
-                  title: const Text('Buddy', style: TextStyle(color: Colors.black87)),
+                  titlePadding: EdgeInsets.zero,
+                  title: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 36,
+                          backgroundImage: NetworkImage(
+                            profile!['avatar_url'] ??
+                                'https://placehold.co/150x150/0ea5e9/white?text=Pet',
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Text(
+                            titleText,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                   background: Stack(
                     fit: StackFit.expand,
                     children: [
                       Image.network(
-                        'https://placehold.co/600x400/0ea5e9/white?text=Buddy',
+                        profile!['avatar_url'] ??
+                            'https://placehold.co/600x400/0ea5e9/white?text=Pet',
                         fit: BoxFit.cover,
                       ),
-                      Container(
-                        decoration: const BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [Colors.transparent, Colors.black54],
-                          ),
-                        ),
-                      ),
-                      const Positioned(
-                        bottom: 16,
-                        left: 16,
-                        child: CircleAvatar(
-                          radius: 40,
-                          backgroundImage: NetworkImage(
-                            'https://placehold.co/150x150/0ea5e9/white?text=Buddy',
+                      Positioned.fill(
+                        child: Container(
+                          decoration: const BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.bottomCenter,
+                              end: Alignment.topCenter,
+                              colors: [
+                                Color(0xCC000000),
+                                Colors.transparent,
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -82,7 +175,6 @@ class ProfileScreen extends StatelessWidget {
                     ),
                   ),
                 ],
-
               ),
               SliverToBoxAdapter(
                 child: Padding(
@@ -96,14 +188,22 @@ class ProfileScreen extends StatelessWidget {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
-                                'Golden Retriever',
-                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+                              Text(
+                                [
+                                  profile!['pet_gender'] ?? 'Género no definido',
+                                  profile!['pet_type'] ?? 'Tipo no definido'
+                                ].where((item) => item.isNotEmpty).join(', '),
+                                style: const TextStyle(
+                                    fontSize: 18, fontWeight: FontWeight.w500),
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'C.P. 28001',
-                                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                                [
+                                  profile!['city'] ?? 'Sin ciudad',
+                                  profile!['postal_code'] ?? 'Sin código postal'
+                                ].where((item) => item.isNotEmpty).join(', '),
+                                style: TextStyle(
+                                    fontSize: 14, color: Colors.grey[600]),
                               ),
                             ],
                           ),
@@ -112,15 +212,27 @@ class ProfileScreen extends StatelessWidget {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.grey[200],
                               foregroundColor: Colors.black87,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 10,
+                              ),
+                              textStyle: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              elevation: 0,
                             ),
                             child: const Text('Editar Perfil'),
                           ),
                         ],
                       ),
                       const SizedBox(height: 16),
-                      const Text(
-                        '¡Me encanta jugar en el parque y perseguir pelotas! Soy muy amigable y me gusta conocer nuevos amigos.',
-                        style: TextStyle(fontSize: 15, height: 1.4),
+                      Text(
+                        profile!['bio'] ?? 'Este usuario aún no tiene biografía.',
+                        style: const TextStyle(fontSize: 15, height: 1.4),
                       ),
                     ],
                   ),
@@ -144,25 +256,49 @@ class ProfileScreen extends StatelessWidget {
           },
           body: TabBarView(
             children: [
-              GridView.builder(
-                padding: const EdgeInsets.all(4),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                  crossAxisSpacing: 4,
-                  mainAxisSpacing: 4,
-                ),
-                itemCount: 9,
-                itemBuilder: (context, index) {
-                  return InkWell(
-                    onTap: () => Navigator.pushNamed(context, '/post/view'),
-                    child: Image.network(
-                      'https://placehold.co/400x400/e0f2fe/0ea5e9?text=Pet+${index + 1}',
+              if ((profile!['posts'] as List<dynamic>?)?.isNotEmpty ?? false)
+                GridView.builder(
+                  padding: const EdgeInsets.all(4),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    crossAxisSpacing: 4,
+                    mainAxisSpacing: 4,
+                  ),
+                  itemCount: (profile!['posts'] as List<dynamic>).length,
+                  itemBuilder: (context, index) {
+                    final post = (profile!['posts'] as List<dynamic>)[index];
+                    return InkWell(
+                      onTap: () => Navigator.pushNamed(context, '/post/view'),
+                      child: Image.network(
+                        post['image_url'] ??
+                            'https://placehold.co/400x400/e0f2fe/0ea5e9?text=Pet+${index + 1}',
+                        fit: BoxFit.cover,
+                      ),
+                    );
+                  },
+                )
+              else
+                const Center(child: Text('Aún no ha publicado nada')),
+              if ((profile!['photos'] as List<dynamic>?)?.isNotEmpty ?? false)
+                GridView.builder(
+                  padding: const EdgeInsets.all(4),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    crossAxisSpacing: 4,
+                    mainAxisSpacing: 4,
+                  ),
+                  itemCount: (profile!['photos'] as List<dynamic>).length,
+                  itemBuilder: (context, index) {
+                    final photo = (profile!['photos'] as List<dynamic>)[index];
+                    return Image.network(
+                      photo['image_url'] ??
+                          'https://placehold.co/400x400/e0f2fe/0ea5e9?text=Photo+${index + 1}',
                       fit: BoxFit.cover,
-                    ),
-                  );
-                },
-              ),
-              const Center(child: Text('Fotos etiquetadas')),
+                    );
+                  },
+                )
+              else
+                const Center(child: Text('Aún no ha subido fotos')),
             ],
           ),
         ),
@@ -194,9 +330,6 @@ class _SliverTabBarDelegate extends SliverPersistentHeaderDelegate {
 }
 
 Future<void> _logout(BuildContext context) async {
-  // Consumir endpoint del backend para hacer logout
   await AuthService.instance.logout();
-
-  // Limpiar la navegación y volver a la pantalla de login
   Navigator.pushNamedAndRemoveUntil(context, '/login', (_) => false);
 }
