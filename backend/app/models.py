@@ -18,8 +18,11 @@ class SignUpRequest(BaseModel):
     password: str
     username: str
     postal_code: Optional[str] = None
+    city: Optional[str] = None
     pet_name: Optional[str] = None
     pet_type: Optional[str] = None
+    pet_gender: Optional[str] = None
+
 
 class LoginRequest(BaseModel):
     """

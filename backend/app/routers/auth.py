@@ -22,9 +22,11 @@ load_dotenv()
 JWT_SECRET = os.environ["JWT_SECRET"]
 JWT_ALGORITHM = os.environ.get("JWT_ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
+SUPABASE_PUBLIC_ASSETS_URL = os.environ.get("SUPABASE_PUBLIC_ASSETS", "")
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
@@ -97,8 +99,11 @@ def signup(payload: SignUpRequest):
             "email": payload.email,
             "username": payload.username,
             "postal_code": payload.postal_code,
+            "city": payload.city,
             "pet_name": payload.pet_name,
             "pet_type": payload.pet_type,
+            "pet_gender": payload.pet_gender,
+            "avatar_url": SUPABASE_PUBLIC_ASSETS_URL + "/avatars/default-avatar.jpg",
             "role": "user"
         }).execute()
     except Exception:

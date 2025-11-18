@@ -53,7 +53,16 @@ class AuthService {
   }
 
   // Funcion de registro
-  Future<String?> signup(String email, String password, String username) async {
+  Future<String?> signup(
+    String email,
+    String password,
+    String username, {
+    String? postalCode,
+    String? city,
+    String? petName,
+    String? petType,
+    String? petGender,
+  }) async {
     final url = Uri.parse('${ApiConfig.baseUrl}/auth/signup');
 
     try {
@@ -64,6 +73,11 @@ class AuthService {
           'email': email,
           'password': password,
           'username': username,
+          'postal_code': postalCode,
+          'city': city,
+          'pet_name': petName,
+          'pet_type': petType,
+          'pet_gender': petGender,
         }),
       );
 

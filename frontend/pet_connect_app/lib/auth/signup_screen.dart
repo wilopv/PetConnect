@@ -20,9 +20,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _emailController = TextEditingController();      // email necesario
   final _passwordController = TextEditingController();
   final _postalController = TextEditingController();
+  final _cityController = TextEditingController();
   final _petNameController = TextEditingController();
 
   String? _petType;
+  String? _petGender;
 
   Future<void> _handleSignup() async {
     final username = _usernameController.text.trim();
@@ -37,7 +39,22 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
 
     // Llamada al backend
-    final error = await AuthService.instance.signup(email, password, username);
+    final postalCode = _postalController.text.trim();
+    final city = _cityController.text.trim();
+    final petName = _petNameController.text.trim();
+    final petType = _petType;
+    final petGender = _petGender;
+
+    final error = await AuthService.instance.signup(
+      email,
+      password,
+      username,
+      postalCode: postalCode.isEmpty ? null : postalCode,
+      city: city.isEmpty ? null : city,
+      petName: petName.isEmpty ? null : petName,
+      petType: petType,
+      petGender: petGender,
+    );
 
     if (!mounted) return;
 
@@ -60,6 +77,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     _postalController.dispose();
+    _cityController.dispose();
     _petNameController.dispose();
     super.dispose();
   }
@@ -102,6 +120,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
           const SizedBox(height: 16),
 
           TextField(
+            controller: _cityController,
+            decoration: const InputDecoration(labelText: 'Ciudad'),
+          ),
+          const SizedBox(height: 16),
+
+          TextField(
             controller: _petNameController,
             decoration: const InputDecoration(labelText: 'Nombre de tu Mascota'),
           ),
@@ -117,6 +141,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ))
                 .toList(),
             onChanged: (v) => setState(() => _petType = v),
+          ),
+          const SizedBox(height: 16),
+
+          DropdownButtonFormField<String>(
+            value: _petGender,
+            decoration: const InputDecoration(labelText: 'Género de tu Mascota'),
+            items: const ['Macho', 'Hembra', 'Otro']
+                .map((genero) => DropdownMenuItem(
+                      value: genero,
+                      child: Text(genero),
+                    ))
+                .toList(),
+            onChanged: (v) => setState(() => _petGender = v),
           ),
           const SizedBox(height: 32),
 
