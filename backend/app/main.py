@@ -4,11 +4,13 @@
 
 from fastapi import Depends, FastAPI
 
-from .auth import router as auth_router
+from .routers.auth import router as auth_router
 from .dependencies import get_current_user
+from .routers.profile import router as profile_router
 
 app = FastAPI()
 app.include_router(auth_router)
+app.include_router(profile_router)
 
 
 @app.get("/users/me")

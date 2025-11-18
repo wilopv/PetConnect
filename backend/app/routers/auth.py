@@ -12,8 +12,8 @@ from fastapi import APIRouter, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 
-from .database import get_supabase_client, get_service_client
-from .models import LoginRequest, SignUpRequest, TokenResponse, UserResponse
+from ..database import get_supabase_client, get_service_client
+from ..models import LoginRequest, SignUpRequest, TokenResponse, UserResponse
 from supabase_auth.errors import AuthApiError
 
 
