@@ -5,12 +5,13 @@
 /// Configura el tema, las rutas y el punto de entrada de la aplicación.
 
 import 'package:flutter/material.dart';
+import 'package:pet_connect_app/admin/main_admin_wrapper.dart';
 
 import 'auth/login_screen.dart';
 import 'auth/signup_screen.dart';
 import 'theme/app_theme.dart';
 import 'user/main_wrapper.dart';
-import 'admin/admin_user_list_screen.dart';
+import 'admin/main_admin_wrapper.dart';
 
 void main() {
   runApp(const PetConnectApp());
@@ -30,7 +31,7 @@ class PetConnectApp extends StatelessWidget {
         '/login': (context) => const LoginScreen(),
         '/signup': (context) => const SignUpScreen(),
         '/home': (context) => const MainWrapper(initialIndex: 0),
-        '/moderatorHome': (context) => const AdminUserListScreen(),
+        '/moderatorHome': (context) => const MainAdminWrapper(initialIndex: 0),
       },
     );
   }

@@ -1,6 +1,11 @@
+/// Autor: Wilbert López Veras 
+/// Fecha de creación: 17 de noviembre de 2025
+/// Descripción:
+/// Pantalla de lista de usuarios de la aplicación para el moderador.
+
 import 'package:flutter/material.dart';
 
-import '../../theme/app_colors.dart';
+import '../../../theme/app_colors.dart';
 
 class AdminUserListScreen extends StatelessWidget {
   const AdminUserListScreen({super.key});

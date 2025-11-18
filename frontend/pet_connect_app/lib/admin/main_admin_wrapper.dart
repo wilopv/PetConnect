@@ -1,26 +1,30 @@
-﻿import 'package:flutter/material.dart';
+/// Autor: Wilbert López Veras 
+/// Fecha de creación: 17 de noviembre de 2025
+/// Descripción:
+/// Pantalla principal del administrador en la aplicación.
+/// 
 
+import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
-import 'screens/home_screen.dart';
-
+import 'screens/admin_user_list_screen.dart';
 import '../shared/profile/profile_screen.dart';
 
 
-class MainWrapper extends StatefulWidget {
+class MainAdminWrapper extends StatefulWidget {
   final int initialIndex;
-  const MainWrapper({super.key, this.initialIndex = 0});
+  const MainAdminWrapper({super.key, this.initialIndex = 0});
 
   @override
-  State<MainWrapper> createState() => _MainWrapperState();
+  State<MainAdminWrapper> createState() => _MainAdminWrapperState();
 }
 
-class _MainWrapperState extends State<MainWrapper> {
+class _MainAdminWrapperState extends State<MainAdminWrapper> {
   late int _currentIndex;
   late final PageController _pageController;
 
   final List<Widget> _screens = const [
-    HomeScreen(),
-    HomeScreen(),
+    AdminUserListScreen(),
+    AdminUserListScreen(),
     ProfileScreen(),
   ];
 
@@ -53,18 +57,19 @@ class _MainWrapperState extends State<MainWrapper> {
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
-            label: 'Inicio',
+            activeIcon: Icon(Icons.group),
+            label: 'Usuarios',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.add_circle_outline),
-            activeIcon: Icon(Icons.add_circle),
-            label: 'Publicar',
+            activeIcon: Icon(Icons.report),
+            label: 'Reportes',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person_outline),
             activeIcon: Icon(Icons.person),
             label: 'Yo',
+          
           ),
         ],
       ),

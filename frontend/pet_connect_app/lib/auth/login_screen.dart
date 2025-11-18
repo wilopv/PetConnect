@@ -21,9 +21,9 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _storage = const FlutterSecureStorage();
-  
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
+  // email controller with default text for testing
+  final _emailController = TextEditingController(text: 'wilbertlopv@gmail.com');
+  final _passwordController = TextEditingController(text: '123456');
   bool _isLoading = false;
 
   @override
@@ -53,6 +53,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     decoration: InputDecoration(
                       labelText: 'Email',
                       prefixIcon: Icon(Icons.email_outlined),
+                    
                     ),
                     keyboardType: TextInputType.emailAddress,
                   ),
