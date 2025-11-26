@@ -22,7 +22,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _storage = const FlutterSecureStorage();
   // email controller with default text for testing
-  final _emailController = TextEditingController(text: 'wilbertlopv@gmail.com');
+  final _emailController = TextEditingController(text: 'usuario1@hotmail.com');
   final _passwordController = TextEditingController(text: '123456');
   bool _isLoading = false;
 

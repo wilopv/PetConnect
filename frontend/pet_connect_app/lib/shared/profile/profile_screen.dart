@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import '../../../theme/app_colors.dart';
 import 'package:pet_connect_app/lib/services/auth_service.dart';
 import 'package:pet_connect_app/lib/services/profile_service.dart';
+import './edit_profile_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -208,7 +209,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ],
                           ),
                           ElevatedButton(
-                            onPressed: () {},
+                            onPressed: () async {
+                              if (profile == null) return;
+                              final updated = await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => EditProfileScreen(
+                                    profile: Map<String, dynamic>.from(profile!),
+                                  ),
+                                ),
+                              );
+                              if (updated == true && mounted) {
+                                setState(() => loading = true);
+                                await loadProfile();
+                              }
+                            },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.grey[200],
                               foregroundColor: Colors.black87,

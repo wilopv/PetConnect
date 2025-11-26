@@ -78,5 +78,5 @@ class ProfileUpdate(BaseModel):
     pet_type: Optional[str] = None
     pet_gender: Optional[str] = None
     avatar_url: Optional[str] = None
+    avatar_base64: Optional[str] = None
     bio: Optional[str] = None
-

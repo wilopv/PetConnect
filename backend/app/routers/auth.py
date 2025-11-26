@@ -23,6 +23,8 @@ JWT_SECRET = os.environ["JWT_SECRET"]
 JWT_ALGORITHM = os.environ.get("JWT_ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 SUPABASE_PUBLIC_ASSETS_URL = os.environ.get("SUPABASE_PUBLIC_ASSETS", "")
+USER_CONTENT_BUCKET = os.environ.get("SUPABASE_USER_BUCKET", "user-content")
+USER_CONTENT_ROOT = os.environ.get("SUPABASE_USER_FOLDER", "")
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
@@ -113,6 +115,12 @@ def signup(payload: SignUpRequest):
             detail="No se pudo crear el perfil del usuario."
         )
 
+    try:
+        _create_user_storage(service, user.id)
+    except Exception as exc:
+        # No interrumpimos el registro si falla la creación de carpetas.
+        print(f"No se pudo preparar el almacenamiento del usuario {user.id}: {exc}")
+
     token = create_access_token({"sub": user.id})
     return TokenResponse(
         access_token=token,
@@ -122,6 +130,27 @@ def signup(payload: SignUpRequest):
             email=payload.email,
             role="user"
         )
+    )
+
+
+def _create_user_storage(service_client, user_id: str):
+    """
+    Autor: Wilbert Lopez Veras
+    Fecha: 25-11-2025
+    Descripcion: Crea las carpetas iniciales en el bucket de Supabase para un nuevo usuario.
+    """
+    if not USER_CONTENT_BUCKET:
+        return
+
+    storage = service_client.storage.from_(USER_CONTENT_BUCKET)
+    base_path = f"{USER_CONTENT_ROOT}/{user_id}".strip("/")
+
+    # Crear carpeta posts en la carpeta del bucket de contenido de usuario
+    path = f"{base_path}/posts/.keep"
+    storage.upload(
+        path,
+        b"",
+        {"content-type": "text/plain", "upsert": "true"},
     )
 
 
@@ -201,5 +230,3 @@ def login(payload: LoginRequest):
             role=role
         )
     )
-
-
