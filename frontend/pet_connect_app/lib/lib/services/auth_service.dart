@@ -111,4 +111,6 @@ class AuthService {
   }
 
   Future<String?> getToken() => _storage.read(key: 'access_token');
+
+  Future<String?> getUserId() => _storage.read(key: 'user_id');
 }

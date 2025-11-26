@@ -5,12 +5,20 @@
 
 import 'package:flutter/material.dart';
 import '../../../theme/app_colors.dart';
+import 'package:pet_connect_app/lib/config/api_config.dart';
 import 'package:pet_connect_app/lib/services/auth_service.dart';
 import 'package:pet_connect_app/lib/services/profile_service.dart';
 import './edit_profile_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+  final String? profileId;
+  final bool isOwner;
+  const ProfileScreen({
+    super.key,
+    this.profileId,
+    this.isOwner = true,
+  }) : assert(isOwner || profileId != null,
+            'profileId debe proveerse cuando no es el propietario');
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -44,7 +52,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
 
     profileService = ProfileService(
-      baseUrl: "http://localhost:8000", 
+      baseUrl: ApiConfig.baseUrl,
       token: token,
     );
 
@@ -55,7 +63,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (profileService == null) return;
 
     try {
-      final data = await profileService!.getMyProfile();
+      final data = widget.isOwner || widget.profileId == null
+          ? await profileService!.getMyProfile()
+          : await profileService!.getProfileById(widget.profileId!);
       setState(() {
         profile = data;
         loading = false;
@@ -152,30 +162,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ],
                   ),
                 ),
-                actions: [
-                  Padding(
-                    padding: const EdgeInsets.only(right: 16.0),
-                    child: ElevatedButton(
-                      onPressed: () => _logout(context),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 10,
+                actions: widget.isOwner
+                    ? [
+                        Padding(
+                          padding: const EdgeInsets.only(right: 16.0),
+                          child: ElevatedButton(
+                            onPressed: () => _logout(context),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 10,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              elevation: 0,
+                            ),
+                            child: const Text(
+                              "Cerrar sesión",
+                              style:
+                                  TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                            ),
+                          ),
                         ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: const Text(
-                        "Cerrar sesión",
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                  ),
-                ],
+                      ]
+                    : null,
               ),
               SliverToBoxAdapter(
                 child: Padding(
@@ -208,40 +221,41 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               ),
                             ],
                           ),
-                          ElevatedButton(
-                            onPressed: () async {
-                              if (profile == null) return;
-                              final updated = await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => EditProfileScreen(
-                                    profile: Map<String, dynamic>.from(profile!),
+                          if (widget.isOwner)
+                            ElevatedButton(
+                              onPressed: () async {
+                                if (profile == null) return;
+                                final updated = await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => EditProfileScreen(
+                                      profile: Map<String, dynamic>.from(profile!),
+                                    ),
                                   ),
+                                );
+                                if (updated == true && mounted) {
+                                  setState(() => loading = true);
+                                  await loadProfile();
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.grey[200],
+                                foregroundColor: Colors.black87,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 10,
                                 ),
-                              );
-                              if (updated == true && mounted) {
-                                setState(() => loading = true);
-                                await loadProfile();
-                              }
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.grey[200],
-                              foregroundColor: Colors.black87,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 10,
+                                textStyle: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                elevation: 0,
                               ),
-                              textStyle: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              elevation: 0,
+                              child: const Text('Editar Perfil'),
                             ),
-                            child: const Text('Editar Perfil'),
-                          ),
                         ],
                       ),
                       const SizedBox(height: 16),

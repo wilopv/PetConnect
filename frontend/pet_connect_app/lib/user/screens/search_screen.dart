@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:pet_connect_app/lib/config/api_config.dart';
 import 'package:pet_connect_app/lib/services/auth_service.dart';
 import 'package:pet_connect_app/lib/services/profile_service.dart';
+import 'package:pet_connect_app/shared/profile/profile_screen.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -22,6 +23,7 @@ class _SearchScreenState extends State<SearchScreen> {
   String _query = '';
   ProfileService? _profileService;
   List<Map<String, dynamic>> _results = [];
+  String? _currentUserId;
   bool _loading = false;
   String? _error;
   Timer? _debounce;
@@ -41,6 +43,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
   Future<void> _setupService() async {
     final token = await AuthService.instance.getToken();
+    final userId = await AuthService.instance.getUserId();
     if (!mounted) return;
     if (token == null) {
       Navigator.pushNamedAndRemoveUntil(context, '/login', (_) => false);
@@ -49,6 +52,7 @@ class _SearchScreenState extends State<SearchScreen> {
     setState(() {
       _profileService =
           ProfileService(baseUrl: ApiConfig.baseUrl, token: token);
+      _currentUserId = userId;
     });
   }
 
@@ -69,8 +73,13 @@ class _SearchScreenState extends State<SearchScreen> {
     setState(() => _loading = true);
     try {
       final data = await _profileService!.searchProfiles(_query.trim());
+      final filtered = _currentUserId == null
+          ? data
+          : data
+              .where((item) => item['id']?.toString() != _currentUserId)
+              .toList();
       if (!mounted) return;
-      setState(() => _results = data);
+      setState(() => _results = filtered);
     } catch (_) {
       if (!mounted) return;
       setState(() => _error = 'No se pudo buscar usuarios');
@@ -204,6 +213,8 @@ class _SearchScreenState extends State<SearchScreen> {
                                                       user['avatar_url']
                                                               as String? ??
                                                           '';
+                                                  final userId =
+                                                      user['id'] as String?;
                                                   return ListTile(
                                                     leading: CircleAvatar(
                                                       backgroundImage:
@@ -220,7 +231,22 @@ class _SearchScreenState extends State<SearchScreen> {
                                                       user['city'] ??
                                                           'Ciudad pendiente',
                                                     ),
-                                                    onTap: () {},
+                                                    onTap: userId == null
+                                                        ? null
+                                                        : () {
+                                                            Navigator.push(
+                                                              context,
+                                                              MaterialPageRoute(
+                                                                builder: (_) =>
+                                                                    ProfileScreen(
+                                                                  profileId:
+                                                                      userId,
+                                                                  isOwner:
+                                                                      false,
+                                                                ),
+                                                              ),
+                                                            );
+                                                          },
                                                   );
                                                 },
                                               ),
