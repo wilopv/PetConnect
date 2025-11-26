@@ -95,6 +95,27 @@ def update_my_profile(payload: ProfileUpdate, user = Depends(get_current_user)):
     return update_result.data[0]
 
 
+@router.get("/search")
+def search_profiles(query: str, limit: int = 20):
+    """
+    Autor: Wilbert Lopez Veras
+    Fecha: 02-12-2025
+    Descripcion: Busca perfiles por nombre de usuario o nombre de mascota.
+    """
+    client = get_supabase_client()
+    normalized_query = f"%{query.lower()}%"
+
+    result = (
+        client.table("profiles")
+        .select("id, username, city, avatar_url, pet_name")
+        .or_(f"username.ilike.{normalized_query},pet_name.ilike.{normalized_query}")
+        .limit(limit)
+        .execute()
+    )
+
+    return result.data or []
+
+
 @router.get("/{id}", response_model=Profile)
 def get_profile(id: str):
     """

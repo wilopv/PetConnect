@@ -5,13 +5,13 @@
 /// Configura el tema, las rutas y el punto de entrada de la aplicación.
 
 import 'package:flutter/material.dart';
-import 'package:pet_connect_app/admin/main_admin_wrapper.dart';
 
 import 'auth/login_screen.dart';
 import 'auth/signup_screen.dart';
 import 'theme/app_theme.dart';
 import 'user/main_wrapper.dart';
 import 'admin/main_admin_wrapper.dart';
+
 
 void main() {
   runApp(const PetConnectApp());

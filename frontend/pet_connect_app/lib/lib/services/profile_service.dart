@@ -51,7 +51,7 @@ class ProfileService {
     return json.decode(response.body);
   }
 
-  // GET /profile/{id} — ver perfil de otros
+  // GET /profile/{id} – ver perfil de otros
   Future<Map<String, dynamic>> getProfileById(String id) async {
     final response = await http.get(
       Uri.parse('$baseUrl/profile/$id'),
@@ -63,5 +63,20 @@ class ProfileService {
     }
 
     return json.decode(response.body);
+  }
+
+  // GET /profile/search
+  Future<List<Map<String, dynamic>>> searchProfiles(String query) async {
+    final uri = Uri.parse('$baseUrl/profile/search')
+        .replace(queryParameters: {'query': query});
+
+    final response = await http.get(uri, headers: _headers);
+
+    if (response.statusCode != 200) {
+      throw Exception('Error buscando usuarios');
+    }
+
+    final List<dynamic> raw = json.decode(response.body);
+    return raw.cast<Map<String, dynamic>>();
   }
 }

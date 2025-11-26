@@ -2,8 +2,10 @@
 
 import '../theme/app_colors.dart';
 import 'screens/home_screen.dart';
+import 'screens/search_screen.dart';
 
 import '../shared/profile/profile_screen.dart';
+
 
 
 class MainWrapper extends StatefulWidget {
@@ -20,7 +22,7 @@ class _MainWrapperState extends State<MainWrapper> {
 
   final List<Widget> _screens = const [
     HomeScreen(),
-    HomeScreen(),
+    SearchScreen(),
     ProfileScreen(),
   ];
 
