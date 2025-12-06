@@ -34,10 +34,20 @@ def get_my_profile(user = Depends(get_current_user)):
         .execute()
     )
 
-    if not result.data:
+    data = result.data
+    if not data:
         raise HTTPException(404, "Perfil no encontrado")
 
-    return result.data
+    posts = (
+        client.table("posts")
+        .select("*")
+        .eq("user_id", user["id"])
+        .order("created_at", desc=True)
+        .execute()
+    )
+    data["posts"] = posts.data or []
+
+    return data
 
 
 
@@ -133,10 +143,20 @@ def get_profile(id: str):
         .execute()
     )
 
-    if not result.data:
+    data = result.data
+    if not data:
         raise HTTPException(404, "Perfil no encontrado")
 
-    return result.data
+    posts = (
+        client.table("posts")
+        .select("*")
+        .eq("user_id", id)
+        .order("created_at", desc=True)
+        .execute()
+    )
+    data["posts"] = posts.data or []
+
+    return data
 
 
 def _upload_avatar(service_client, user_id: str, avatar_base64: str) -> str:

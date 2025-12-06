@@ -1,3 +1,8 @@
+/// Autor: Wilbert López Veras 
+/// Fecha de creación: 6 de Diciembre de 2025
+/// Descripción:
+/// Pantalla para crear una nueva publicación.
+
 import 'dart:convert';
 import 'dart:io';
 
@@ -25,12 +30,14 @@ class _NewPostScreenState extends State<NewPostScreen> {
     super.dispose();
   }
 
+  /// Abre cámara o galería y almacena temporalmente el archivo seleccionado.
   Future<void> _pickImage(ImageSource source) async {
     final picked = await _picker.pickImage(source: source, imageQuality: 85);
     if (picked == null) return;
     setState(() => _selectedImage = picked);
   }
 
+  /// Convierte la imagen a base64 y envía la nueva publicación al backend.
   Future<void> _submitPost() async {
     if (_selectedImage == null) {
       ScaffoldMessenger.of(context).showSnackBar(

@@ -1,8 +1,8 @@
 # Autor: Wilbert López Veras 
 # Fecha de creación: 2 de Noviembre de 2025
-# Descripción: Archivo con definición de los modelos Pydantic para solicitudes y respuestas
-# relacionadas con la autenticación.
+# Descripción: Archivo con definición de los modelos Pydantic
 
+from __future__ import annotations
 from typing import Optional
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
@@ -67,6 +67,7 @@ class Profile(BaseModel):
     created_at: Optional[str]
     updated_at: Optional[str]
     role: str
+    posts: Optional[list["PostResponse"]] = None
 
     class Config:
         orm_mode = True
