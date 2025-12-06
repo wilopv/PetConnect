@@ -5,6 +5,8 @@
 
 from typing import Optional
 from pydantic import BaseModel, EmailStr
+from datetime import datetime
+
 
 # Esquemas para autenticación
 class SignUpRequest(BaseModel):
@@ -80,3 +82,23 @@ class ProfileUpdate(BaseModel):
     avatar_url: Optional[str] = None
     avatar_base64: Optional[str] = None
     bio: Optional[str] = None
+
+# Esquemas para publicaciones
+class PostBase(BaseModel):
+    user_id: str
+    description: str | None = None
+    image_url: str
+    likes_count: int = 0
+    comments_count: int = 0
+
+class PostResponse(PostBase):
+    id: str
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+
+    class Config:
+        from_orm = True
+
+class PostCreate(BaseModel):
+    description: str | None = None
+    image_base64: str

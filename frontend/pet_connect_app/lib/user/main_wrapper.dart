@@ -2,8 +2,8 @@
 
 import '../theme/app_colors.dart';
 import 'screens/home_screen.dart';
-import 'screens/search_screen.dart';
-
+//import 'screens/search_screen.dart';
+import 'screens/posts/new_post_screen.dart';
 import '../shared/profile/profile_screen.dart';
 
 
@@ -22,7 +22,7 @@ class _MainWrapperState extends State<MainWrapper> {
 
   final List<Widget> _screens = const [
     HomeScreen(),
-    SearchScreen(),
+    NewPostScreen(),
     ProfileScreen(),
   ];
 
