@@ -69,4 +69,18 @@ class PostsService {
       throw Exception('No se pudo eliminar el post');
     }
   }
+
+  static Future<Map<String, dynamic>> getPostById(String id) async {
+    final headers = await _buildHeaders();
+    final response = await http.get(
+      Uri.parse('${ApiConfig.baseUrl}/posts/$id'),
+      headers: headers,
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('No se pudo obtener la publicación');
+    }
+
+    return json.decode(response.body) as Map<String, dynamic>;
+  }
 }

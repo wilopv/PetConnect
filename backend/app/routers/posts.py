@@ -100,7 +100,7 @@ def delete_post(post_id: str, current_user: dict = Depends(get_current_user)):
     service = get_service_client()
     existing = (
         service.table("posts")
-        .select("id,user_id")
+        .select("id,user_id,image_url")
         .eq("id", post_id)
         .single()
         .execute()
@@ -116,7 +116,30 @@ def delete_post(post_id: str, current_user: dict = Depends(get_current_user)):
             detail="No puedes eliminar este post",
         )
 
+    _delete_post_image(service, data.get("image_url"))
     service.table("posts").delete().eq("id", post_id).execute()
+
+
+@router.get("/{post_id}", response_model=PostResponse)
+def get_post(post_id: str, current_user: dict = Depends(get_current_user)):
+    """
+    Autor: Wilbert Lopez Veras
+    Fecha: 06-12-2025
+    Descripcion: Obtiene la información de una publicación.
+    """
+    client = get_supabase_client()
+    result = (
+        client.table("posts")
+        .select("*")
+        .eq("id", post_id)
+        .single()
+        .execute()
+    )
+
+    if not result.data:
+        raise HTTPException(status_code=404, detail="Post no encontrado")
+
+    return result.data
 
 
 def _upload_post_image(service_client, user_id: str, image_base64: str) -> str:
@@ -160,3 +183,18 @@ def _upload_post_image(service_client, user_id: str, image_base64: str) -> str:
     public_url = storage.get_public_url(path)
     url = public_url.get("publicUrl") if isinstance(public_url, dict) else public_url
     return f"{url}?v={timestamp}"
+
+
+def _delete_post_image(service_client, image_url: str | None):
+    if not image_url or not USER_CONTENT_BUCKET:
+        return
+
+    try:
+        start = image_url.find(USER_CONTENT_BUCKET)
+        if start == -1:
+            return
+        relative = image_url[start + len(USER_CONTENT_BUCKET) + 1 :]
+        relative = relative.split("?v=", 1)[0]
+        service_client.storage.from_(USER_CONTENT_BUCKET).remove([relative])
+    except Exception as exc:
+        print(f"No se pudo eliminar la imagen del post: {exc}")

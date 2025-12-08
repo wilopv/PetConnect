@@ -9,6 +9,7 @@ import 'package:pet_connect_app/lib/config/api_config.dart';
 import 'package:pet_connect_app/lib/services/auth_service.dart';
 import 'package:pet_connect_app/lib/services/profile_service.dart';
 import './edit_profile_screen.dart';
+import 'package:pet_connect_app/user/screens/posts/view_post_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String? profileId;
@@ -295,9 +296,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   itemCount: (profile!['posts'] as List<dynamic>).length,
                   itemBuilder: (context, index) {
-                    final post = (profile!['posts'] as List<dynamic>)[index];
+                    final post = (profile!['posts'] as List<dynamic>)[index]
+                        as Map<String, dynamic>;
                     return InkWell(
-                      onTap: () => Navigator.pushNamed(context, '/post/view'),
+                      onTap: () {
+                        final postId = post['id'] as String?;
+                        if (postId == null) return;
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => ViewPostScreen(
+                              postId: postId,
+                              isOwner: widget.isOwner,
+                            ),
+                          ),
+                        );
+                      },
                       child: Image.network(
                         post['image_url'] ??
                             'https://placehold.co/400x400/e0f2fe/0ea5e9?text=Pet+${index + 1}',
