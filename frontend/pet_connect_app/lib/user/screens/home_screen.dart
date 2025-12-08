@@ -36,8 +36,7 @@ class HomeScreen extends StatelessWidget {
                 subtitle: 'Mira tu perfil y el de tu mascota.',
                 icon: Icons.pets,
                 color: kAccentColor,
-                onTap: () => ScaffoldMessenger.of(context)
-                    .showSnackBar(const SnackBar(content: Text('Próximamente'))),
+                onTap: () => Navigator.pushNamed(context, '/profile'),
               ),
               const SizedBox(height: 20),
               _HomeButton(
@@ -54,8 +53,7 @@ class HomeScreen extends StatelessWidget {
                 subtitle: 'Chatea con otros dueños.',
                 icon: Icons.chat,
                 color: Colors.cyan,
-                onTap: () => ScaffoldMessenger.of(context)
-                    .showSnackBar(const SnackBar(content: Text('Próximamente'))),
+                onTap: () => Navigator.pushNamed(context, '/conversations/list'),
               ),
             ],
           ),

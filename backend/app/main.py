@@ -9,12 +9,14 @@ from .dependencies import get_current_user
 from .routers.profile import router as profile_router
 from .routers.posts import router as posts_router
 from .routers.post_likes import router as post_likes_router
+from .routers.conversations import router as conversations_router
 
 app = FastAPI()
 app.include_router(auth_router)
 app.include_router(profile_router)
 app.include_router(posts_router)
 app.include_router(post_likes_router)
+app.include_router(conversations_router)
 
 
 @app.get("/users/me")

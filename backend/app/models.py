@@ -108,3 +108,36 @@ class PostCreate(BaseModel):
 
 class PostCommentCreate(BaseModel):
     content: str
+
+
+# Esquemas para conversaciones y mensajes
+class ConversationResponse(BaseModel):
+    """
+    Autor: Wilbert Lopez Veras
+    Fecha: 08-12-2025
+    Descripcion: Datos de una conversacion entre usuarios.
+    """
+
+    id: str
+    user_a: str
+    user_b: str
+    created_at: datetime | None = None
+    last_message_at: datetime | None = None
+    user_a_profile: Optional[dict] = None
+    user_b_profile: Optional[dict] = None
+
+
+class ConversationCreate(BaseModel):
+    target_user_id: str
+
+
+class MessageResponse(BaseModel):
+    id: str
+    conversation_id: str
+    sender_id: str
+    content: str
+    created_at: datetime | None = None
+
+
+class MessageCreate(BaseModel):
+    content: str

@@ -8,6 +8,7 @@ import '../../../theme/app_colors.dart';
 import 'package:pet_connect_app/lib/config/api_config.dart';
 import 'package:pet_connect_app/lib/services/auth_service.dart';
 import 'package:pet_connect_app/lib/services/profile_service.dart';
+import 'package:pet_connect_app/lib/services/conversations_service.dart';
 import './edit_profile_screen.dart';
 import 'package:pet_connect_app/user/screens/posts/view_post_screen.dart';
 
@@ -29,6 +30,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Map<String, dynamic>? profile;
   bool loading = true;
   String? error;
+  bool _startingConversation = false;
 
   ProfileService? profileService;
 
@@ -76,6 +78,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
         error = e.toString();
         loading = false;
       });
+    }
+  }
+
+  Future<void> _startConversation() async {
+    final targetId = profile?['id'] as String?;
+    if (targetId == null) return;
+    setState(() => _startingConversation = true);
+    try {
+      final convo = await ConversationsService.createConversation(targetId);
+      if (!mounted) return;
+      Navigator.pushNamed(
+        context,
+        '/conversation/detail',
+        arguments: {
+          'conversationId': convo['id'],
+          'otherUserId': targetId,
+        },
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('No se pudo iniciar la conversación: $e')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _startingConversation = false);
+      }
     }
   }
 
@@ -254,6 +283,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             elevation: 0,
                           ),
                           child: const Text('Editar Perfil'),
+                        )
+                      else
+                        ElevatedButton.icon(
+                          onPressed: _startingConversation
+                              ? null
+                              : () => _startConversation(),
+                          icon: _startingConversation
+                              ? const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              : const Icon(Icons.chat_bubble_outline),
+                          label: const Text('Enviar mensaje'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: kPrimaryColor.withOpacity(0.1),
+                            foregroundColor: kPrimaryColor,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 10,
+                            ),
+                            textStyle: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            elevation: 0,
+                          ),
                         ),
                     ],
                   ),

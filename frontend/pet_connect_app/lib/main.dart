@@ -12,6 +12,9 @@ import 'theme/app_theme.dart';
 import 'user/main_wrapper.dart';
 import 'admin/main_admin_wrapper.dart';
 import 'user/screens/search_screen.dart';
+import 'shared/profile/profile_screen.dart';
+import 'user/screens/conversations/conversation_list_screen.dart';
+import 'user/screens/conversations/conversation_details_screen.dart';
 
 
 void main() {
@@ -34,6 +37,9 @@ class PetConnectApp extends StatelessWidget {
         '/home': (context) => const MainWrapper(initialIndex: 0),
         '/moderatorHome': (context) => const MainAdminWrapper(initialIndex: 0),
         '/search': (context) => const SearchScreen(),
+        '/profile': (context) => const ProfileScreen(isOwner: true),
+        '/conversations/list': (context) => const ConversationListScreen(),
+        '/conversation/detail': (context) => const ConversationDetailsScreen(),
       },
     );
   }
