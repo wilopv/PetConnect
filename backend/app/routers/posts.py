@@ -11,7 +11,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.dependencies import get_current_user
 from app.database import get_supabase_client, get_service_client
-from app.models import PostBase, PostCreate, PostResponse
+from app.models import PostBase, PostCreate, PostResponse, PostCommentCreate
 
 USER_CONTENT_BUCKET = os.environ.get("SUPABASE_USER_BUCKET", "user-content")
 POSTS_FOLDER = os.environ.get("SUPABASE_POSTS_FOLDER", "posts")
@@ -154,6 +154,83 @@ def get_post(post_id: str, current_user: dict = Depends(get_current_user)):
     data["liked_by_me"] = bool(liked.data)
 
     return data
+
+
+@router.post("/{post_id}/comments")
+def add_comment(post_id: str, payload: PostCommentCreate, current_user: dict = Depends(get_current_user)):
+    service = get_service_client()
+    try:
+        insert_result = (
+            service.table("post_comments")
+            .insert({
+                "post_id": post_id,
+                "user_id": current_user["id"],
+                "content": payload.content,
+            })
+            .execute()
+        )
+        if not insert_result.data:
+            raise HTTPException(status_code=400, detail="No se pudo agregar el comentario")
+
+        comment_id = insert_result.data[0]["id"]
+        result = (
+            service.table("post_comments")
+            .select("id, content, created_at, user_id, profiles(username, avatar_url)")
+            .eq("id", comment_id)
+            .single()
+            .execute()
+        )
+    except Exception as exc:
+        print(f"No se pudo agregar el comentario: {exc}")
+        raise HTTPException(status_code=400, detail="No se pudo agregar el comentario")
+    return result.data
+
+
+@router.get("/{post_id}/comments")
+def get_comments(post_id: str, current_user: dict = Depends(get_current_user)):
+    client = get_supabase_client()
+    result = (
+        client.table("post_comments")
+        .select("id, content, created_at, user_id, profiles(username, avatar_url)")
+        .eq("post_id", post_id)
+        .order("created_at", desc=True)
+        .execute()
+    )
+    return result.data or []
+
+
+@router.delete("/{post_id}/comments/{comment_id}")
+def delete_comment(post_id: str, comment_id: str, current_user: dict = Depends(get_current_user)):
+    """
+    Autor: Wilbert Lopez Veras
+    Fecha: 06-12-2025
+    Descripcion: Permite eliminar un comentario creado por el usuario autenticado.
+    """
+    service = get_service_client()
+    try:
+        comment_result = (
+            service.table("post_comments")
+            .select("id, post_id, user_id")
+            .eq("id", comment_id)
+            .single()
+            .execute()
+        )
+    except Exception:
+        raise HTTPException(status_code=404, detail="Comentario no encontrado")
+
+    comment = comment_result.data
+    if not comment or comment.get("post_id") != post_id:
+        raise HTTPException(status_code=404, detail="Comentario no encontrado")
+
+    if comment.get("user_id") != current_user["id"]:
+        raise HTTPException(status_code=403, detail="No puedes eliminar este comentario")
+
+    try:
+        service.table("post_comments").delete().eq("id", comment_id).execute()
+    except Exception:
+        raise HTTPException(status_code=500, detail="No se pudo eliminar el comentario")
+
+    return {"detail": "Comentario eliminado"}
 
 
 def _upload_post_image(service_client, user_id: str, image_base64: str) -> str:

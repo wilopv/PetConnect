@@ -104,3 +104,7 @@ class PostResponse(PostBase):
 class PostCreate(BaseModel):
     description: str | None = None
     image_base64: str
+
+
+class PostCommentCreate(BaseModel):
+    content: str
