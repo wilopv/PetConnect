@@ -128,18 +128,32 @@ def get_post(post_id: str, current_user: dict = Depends(get_current_user)):
     Descripcion: Obtiene la información de una publicación.
     """
     client = get_supabase_client()
-    result = (
-        client.table("posts")
-        .select("*")
-        .eq("id", post_id)
-        .single()
-        .execute()
-    )
-
-    if not result.data:
+    try:
+        result = (
+            client.table("posts")
+            .select("*")
+            .eq("id", post_id)
+            .single()
+            .execute()
+        )
+    except Exception:
         raise HTTPException(status_code=404, detail="Post no encontrado")
 
-    return result.data
+    data = result.data
+    if not data:
+        raise HTTPException(status_code=404, detail="Post no encontrado")
+
+    liked = (
+        client.table("post_likes")
+        .select("id")
+        .eq("post_id", post_id)
+        .eq("user_id", current_user["id"])
+        .limit(1)
+        .execute()
+    )
+    data["liked_by_me"] = bool(liked.data)
+
+    return data
 
 
 def _upload_post_image(service_client, user_id: str, image_base64: str) -> str:

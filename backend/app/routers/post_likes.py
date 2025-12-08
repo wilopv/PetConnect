@@ -24,7 +24,7 @@ def like_post(post_id: str, current_user: dict = Depends(get_current_user)):
     }
 
     service.table("post_likes").insert(data).execute()
-    service.rpc("increment_likes", {"p_post_id": post_id}).execute()
+    service.rpc("increment_likes", {"post_id_input": post_id}).execute()
 
 
 @router.delete("/{post_id}/like", status_code=status.HTTP_204_NO_CONTENT)
@@ -42,7 +42,7 @@ def unlike_post(post_id: str, current_user: dict = Depends(get_current_user)):
         .eq("user_id", current_user["id"])
         .execute()
     )
-    service.rpc("decrement_likes", {"p_post_id": post_id}).execute()
+    service.rpc("decrement_likes", {"post_id_input": post_id}).execute()
 
 
 @router.get("/{post_id}/likes/count")

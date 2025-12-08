@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pet_connect_app/lib/services/posts_service.dart';
+import 'package:pet_connect_app/lib/services/likes_service.dart';
 
 class ViewPostScreen extends StatefulWidget {
   final String postId;
@@ -19,6 +20,7 @@ class _ViewPostScreenState extends State<ViewPostScreen> {
   Map<String, dynamic>? _post;
   bool _loading = true;
   bool _deleting = false;
+  bool _liking = false;
   String? _error;
 
   @override
@@ -110,6 +112,7 @@ class _ViewPostScreenState extends State<ViewPostScreen> {
     final formattedDate = createdAt != null
         ? DateFormat.yMMMMd().add_Hm().format(DateTime.parse(createdAt))
         : null;
+    final likedByMe = _post!['liked_by_me'] as bool? ?? false;
 
     return Scaffold(
       appBar: AppBar(
@@ -177,6 +180,48 @@ class _ViewPostScreenState extends State<ViewPostScreen> {
                     Text(
                       '${_post!['likes_count'] ?? 0} me gusta',
                       style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    Row(
+                      children: [
+                        IconButton(
+                          icon: Icon(
+                            likedByMe ? Icons.favorite : Icons.favorite_border,
+                            color: likedByMe ? Colors.red : Colors.grey[600],
+                          ),
+                          onPressed: _liking
+                              ? null
+                              : () async {
+                                  setState(() => _liking = true);
+                                  try {
+                                    if (likedByMe) {
+                                      await LikesService.unlikePost(widget.postId);
+                                      setState(() {
+                                        _post!['liked_by_me'] = false;
+                                        _post!['likes_count'] =
+                                            (_post!['likes_count'] ?? 1) - 1;
+                                      });
+                                    } else {
+                                      await LikesService.likePost(widget.postId);
+                                      setState(() {
+                                        _post!['liked_by_me'] = true;
+                                        _post!['likes_count'] =
+                                            (_post!['likes_count'] ?? 0) + 1;
+                                      });
+                                    }
+                                  } catch (e) {
+                                    if (mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text(e.toString())),
+                                      );
+                                    }
+                                  } finally {
+                                    if (mounted) {
+                                      setState(() => _liking = false);
+                                    }
+                                  }
+                                },
+                        ),
+                      ],
                     ),
                   ],
                 ),

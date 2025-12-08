@@ -96,6 +96,7 @@ class PostResponse(PostBase):
     id: str
     created_at: datetime | None = None
     updated_at: datetime | None = None
+    liked_by_me: bool = False
 
     class Config:
         from_orm = True
