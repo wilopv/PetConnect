@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:pet_connect_app/lib/services/conversations_service.dart';
 import 'package:pet_connect_app/lib/services/auth_service.dart';
@@ -13,11 +14,13 @@ class ConversationDetailsScreen extends StatefulWidget {
 class _ConversationDetailsScreenState extends State<ConversationDetailsScreen> {
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  Timer? _pollingTimer;
 
   List<Map<String, dynamic>> _messages = [];
   bool _loading = true;
   bool _sending = false;
   String? _error;
+  bool _fetching = false;
 
   String? _conversationId;
   String? _currentUserId;
@@ -45,14 +48,19 @@ class _ConversationDetailsScreenState extends State<ConversationDetailsScreen> {
       return;
     }
     await _loadMessages();
+    _pollingTimer =
+        Timer.periodic(const Duration(seconds: 5), (_) => _loadMessages(showSpinner: false));
   }
 
-  Future<void> _loadMessages() async {
-    if (_conversationId == null) return;
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
+  Future<void> _loadMessages({bool showSpinner = true}) async {
+    if (_conversationId == null || _fetching) return;
+    _fetching = true;
+    if (showSpinner) {
+      setState(() {
+        _loading = true;
+        _error = null;
+      });
+    }
     try {
       final data = await ConversationsService.getMessages(_conversationId!);
       if (!mounted) return;
@@ -64,8 +72,11 @@ class _ConversationDetailsScreenState extends State<ConversationDetailsScreen> {
       if (!mounted) return;
       setState(() => _error = e.toString());
     } finally {
+      _fetching = false;
       if (mounted) {
-        setState(() => _loading = false);
+        if (showSpinner) {
+          setState(() => _loading = false);
+        }
       }
     }
   }
@@ -79,16 +90,15 @@ class _ConversationDetailsScreenState extends State<ConversationDetailsScreen> {
     setState(() => _sending = true);
     final content = _controller.text.trim();
     try {
-      final sent = await ConversationsService.sendMessage(
+      await ConversationsService.sendMessage(
         _conversationId!,
         content,
       );
       if (!mounted) return;
       setState(() {
-        _messages.add(sent);
         _controller.clear();
       });
-      _scrollToBottom();
+      await _loadMessages(showSpinner: false);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -136,12 +146,6 @@ class _ConversationDetailsScreenState extends State<ConversationDetailsScreen> {
             ),
           ],
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loading ? null : _loadMessages,
-          ),
-        ],
       ),
       body: Column(
         children: [
@@ -197,6 +201,7 @@ class _ConversationDetailsScreenState extends State<ConversationDetailsScreen> {
   void dispose() {
     _controller.dispose();
     _scrollController.dispose();
+    _pollingTimer?.cancel();
     super.dispose();
   }
 }
