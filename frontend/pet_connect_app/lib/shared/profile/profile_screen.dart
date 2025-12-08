@@ -96,280 +96,251 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final petName = profile!['pet_name'] ?? 'Mi mascota';
     final username = (profile!['username'] ?? '').toString().trim();
     final titleText = username.isNotEmpty ? '$petName (@$username)' : petName;
+    final posts = (profile!['posts'] as List<dynamic>?) ?? [];
 
     return Scaffold(
-      body: DefaultTabController(
-        length: 2,
-        child: NestedScrollView(
-          headerSliverBuilder: (context, innerBoxIsScrolled) {
-            return [
-              SliverAppBar(
-                expandedHeight: 300,
-                floating: false,
-                pinned: true,
-                backgroundColor: Colors.white,
-                flexibleSpace: FlexibleSpaceBar(
-                  centerTitle: false,
-                  titlePadding: EdgeInsets.zero,
-                  title: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                    child: Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 36,
-                          backgroundImage: NetworkImage(
-                            profile!['avatar_url'] ??
-                                'https://placehold.co/150x150/0ea5e9/white?text=Pet',
-                          ),
+      body: NestedScrollView(
+        headerSliverBuilder: (context, innerBoxIsScrolled) => [
+          SliverAppBar(
+            expandedHeight: 300,
+            floating: false,
+            pinned: true,
+            backgroundColor: Colors.white,
+            flexibleSpace: FlexibleSpaceBar(
+              centerTitle: false,
+              titlePadding: EdgeInsets.zero,
+              title: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 36,
+                      backgroundImage: NetworkImage(
+                        profile!['avatar_url'] ??
+                            'https://placehold.co/150x150/0ea5e9/white?text=Pet',
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Text(
+                        titleText,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
                         ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Text(
-                            titleText,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              background: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Image.network(
+                    profile!['avatar_url'] ??
+                        'https://placehold.co/600x400/0ea5e9/white?text=Pet',
+                    fit: BoxFit.cover,
+                  ),
+                  Positioned.fill(
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.bottomCenter,
+                          end: Alignment.topCenter,
+                          colors: [
+                            Color(0xCC000000),
+                            Colors.transparent,
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: widget.isOwner
+                ? [
+                    Padding(
+                      padding: const EdgeInsets.only(right: 16.0),
+                      child: ElevatedButton(
+                        onPressed: () => _logout(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 10,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: const Text(
+                          "Cerrar sesión",
+                          style:
+                              TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ),
+                  ]
+                : null,
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            [
+                              profile!['pet_gender'] ?? 'Género no definido',
+                              profile!['pet_type'] ?? 'Tipo no definido'
+                            ].where((item) => item.isNotEmpty).join(', '),
                             style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
+                                fontSize: 18, fontWeight: FontWeight.w500),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            [
+                              profile!['city'] ?? 'Sin ciudad',
+                              profile!['postal_code'] ?? 'Sin código postal'
+                            ].where((item) => item.isNotEmpty).join(', '),
+                            style:
+                                TextStyle(fontSize: 14, color: Colors.grey[600]),
+                          ),
+                        ],
+                      ),
+                      if (widget.isOwner)
+                        ElevatedButton(
+                          onPressed: () async {
+                            if (profile == null) return;
+                            final updated = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => EditProfileScreen(
+                                  profile: Map<String, dynamic>.from(profile!),
+                                ),
+                              ),
+                            );
+                            if (updated == true && mounted) {
+                              setState(() => loading = true);
+                              await loadProfile();
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.grey[200],
+                            foregroundColor: Colors.black87,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 10,
                             ),
-                            overflow: TextOverflow.ellipsis,
+                            textStyle: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: const Text('Editar Perfil'),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    profile!['bio'] ?? 'Este usuario aún no tiene biografía.',
+                    style: const TextStyle(fontSize: 15, height: 1.4),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF5F7FB),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Row(
+                      children: [
+                        Icon(Icons.grid_view_rounded,
+                            color: kPrimaryColor, size: 20),
+                        SizedBox(width: 8),
+                        Text(
+                          'Publicaciones',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: kPrimaryColor,
                           ),
                         ),
                       ],
                     ),
-                  ),
-                  background: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      Image.network(
-                        profile!['avatar_url'] ??
-                            'https://placehold.co/600x400/0ea5e9/white?text=Pet',
-                        fit: BoxFit.cover,
-                      ),
-                      Positioned.fill(
-                        child: Container(
-                          decoration: const BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.bottomCenter,
-                              end: Alignment.topCenter,
-                              colors: [
-                                Color(0xCC000000),
-                                Colors.transparent,
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                actions: widget.isOwner
-                    ? [
-                        Padding(
-                          padding: const EdgeInsets.only(right: 16.0),
-                          child: ElevatedButton(
-                            onPressed: () => _logout(context),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 10,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              elevation: 0,
-                            ),
-                            child: const Text(
-                              "Cerrar sesión",
-                              style:
-                                  TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-                            ),
-                          ),
-                        ),
-                      ]
-                    : null,
-              ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                [
-                                  profile!['pet_gender'] ?? 'Género no definido',
-                                  profile!['pet_type'] ?? 'Tipo no definido'
-                                ].where((item) => item.isNotEmpty).join(', '),
-                                style: const TextStyle(
-                                    fontSize: 18, fontWeight: FontWeight.w500),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                [
-                                  profile!['city'] ?? 'Sin ciudad',
-                                  profile!['postal_code'] ?? 'Sin código postal'
-                                ].where((item) => item.isNotEmpty).join(', '),
-                                style: TextStyle(
-                                    fontSize: 14, color: Colors.grey[600]),
-                              ),
-                            ],
-                          ),
-                          if (widget.isOwner)
-                            ElevatedButton(
-                              onPressed: () async {
-                                if (profile == null) return;
-                                final updated = await Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => EditProfileScreen(
-                                      profile: Map<String, dynamic>.from(profile!),
-                                    ),
-                                  ),
-                                );
-                                if (updated == true && mounted) {
-                                  setState(() => loading = true);
-                                  await loadProfile();
-                                }
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.grey[200],
-                                foregroundColor: Colors.black87,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 10,
-                                ),
-                                textStyle: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                elevation: 0,
-                              ),
-                              child: const Text('Editar Perfil'),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        profile!['bio'] ?? 'Este usuario aún no tiene biografía.',
-                        style: const TextStyle(fontSize: 15, height: 1.4),
-                      ),
-                    ],
-                  ),
+                    SizedBox(height: 8),
+                    Divider(height: 1),
+                  ],
                 ),
               ),
-              SliverPersistentHeader(
-                delegate: _SliverTabBarDelegate(
-                  const TabBar(
-                    labelColor: kPrimaryColor,
-                    unselectedLabelColor: Colors.grey,
-                    indicatorColor: kPrimaryColor,
-                    tabs: [
-                      Tab(icon: Icon(Icons.grid_on), text: 'Publicaciones'),
-                      Tab(icon: Icon(Icons.image), text: 'Fotos'),
-                    ],
-                  ),
-                ),
-                pinned: true,
-              ),
-            ];
-          },
-          body: TabBarView(
-            children: [
-              if ((profile!['posts'] as List<dynamic>?)?.isNotEmpty ?? false)
-                GridView.builder(
-                  padding: const EdgeInsets.all(4),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    crossAxisSpacing: 4,
-                    mainAxisSpacing: 4,
-                  ),
-                  itemCount: (profile!['posts'] as List<dynamic>).length,
-                  itemBuilder: (context, index) {
-                    final post = (profile!['posts'] as List<dynamic>)[index]
-                        as Map<String, dynamic>;
-                    return InkWell(
-                      onTap: () {
-                        final postId = post['id'] as String?;
-                        if (postId == null) return;
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => ViewPostScreen(
-                              postId: postId,
-                              isOwner: widget.isOwner,
-                            ),
-                          ),
-                        );
-                      },
-                      child: Image.network(
-                        post['image_url'] ??
-                            'https://placehold.co/400x400/e0f2fe/0ea5e9?text=Pet+${index + 1}',
-                        fit: BoxFit.cover,
-                      ),
-                    );
-                  },
-                )
-              else
-                const Center(child: Text('Aún no ha publicado nada')),
-              if ((profile!['photos'] as List<dynamic>?)?.isNotEmpty ?? false)
-                GridView.builder(
-                  padding: const EdgeInsets.all(4),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    crossAxisSpacing: 4,
-                    mainAxisSpacing: 4,
-                  ),
-                  itemCount: (profile!['photos'] as List<dynamic>).length,
-                  itemBuilder: (context, index) {
-                    final photo = (profile!['photos'] as List<dynamic>)[index];
-                    return Image.network(
-                      photo['image_url'] ??
-                          'https://placehold.co/400x400/e0f2fe/0ea5e9?text=Photo+${index + 1}',
-                      fit: BoxFit.cover,
-                    );
-                  },
-                )
-              else
-                const Center(child: Text('Aún no ha subido fotos')),
-            ],
+            ),
           ),
-        ),
+        ],
+        body: posts.isNotEmpty
+            ? GridView.builder(
+                padding: const EdgeInsets.all(4),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  crossAxisSpacing: 4,
+                  mainAxisSpacing: 4,
+                ),
+                itemCount: posts.length,
+                itemBuilder: (context, index) {
+                  final post = posts[index] as Map<String, dynamic>;
+                  return InkWell(
+                    onTap: () {
+                      final postId = post['id'] as String?;
+                      if (postId == null) return;
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ViewPostScreen(
+                            postId: postId,
+                            isOwner: widget.isOwner,
+                          ),
+                        ),
+                      );
+                    },
+                    child: Image.network(
+                      post['image_url'] ??
+                          'https://placehold.co/400x400/e0f2fe/0ea5e9?text=Pet+${index + 1}',
+                      fit: BoxFit.cover,
+                    ),
+                  );
+                },
+              )
+            : const Center(
+                child: Text('Aún no ha publicado nada'),
+              ),
       ),
     );
   }
-}
-
-class _SliverTabBarDelegate extends SliverPersistentHeaderDelegate {
-  _SliverTabBarDelegate(this._tabBar);
-  final TabBar _tabBar;
-
-  @override
-  double get minExtent => _tabBar.preferredSize.height;
-
-  @override
-  double get maxExtent => _tabBar.preferredSize.height;
-
-  @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
-    return Container(
-      color: Colors.white,
-      child: _tabBar,
-    );
-  }
-
-  @override
-  bool shouldRebuild(covariant _SliverTabBarDelegate oldDelegate) => false;
 }
 
 Future<void> _logout(BuildContext context) async {
