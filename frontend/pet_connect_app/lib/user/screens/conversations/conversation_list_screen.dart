@@ -107,13 +107,15 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
             : conversation['user_a_profile'];
         final petName = otherProfile?['pet_name'] ?? 'Sin nombre';
         final username = otherProfile?['username'] ?? 'usuario';
+        final avatarUrl =
+            otherProfile?['avatar_url'] ?? 'https://placehold.co/60x60/0ea5e9/ffffff?text=🐾';
 
         final displayName = '$petName (@$username)';
 
         return _ConversationListTile(
           name: displayName,
           message: subtitle,
-          avatarUrl: 'https://placehold.co/60x60/0ea5e9/ffffff?text=🐾',
+          avatarUrl: avatarUrl,
           onTap: () {
             Navigator.pushNamed(
               context,
@@ -122,6 +124,7 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
                 'conversationId': conversation['id'],
                 'otherUserId': otherUserId,
                 'otherUserDisplay': displayName,
+                'otherUserAvatar': avatarUrl,
               },
             );
           },

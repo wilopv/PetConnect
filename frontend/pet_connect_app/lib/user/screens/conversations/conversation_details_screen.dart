@@ -26,6 +26,7 @@ class _ConversationDetailsScreenState extends State<ConversationDetailsScreen> {
   String? _currentUserId;
   String? _otherUserId;
   String? _otherUserDisplay;
+  String? _otherUserAvatar;
 
   @override
   void initState() {
@@ -39,6 +40,7 @@ class _ConversationDetailsScreenState extends State<ConversationDetailsScreen> {
     _conversationId = args?['conversationId'] as String?;
     _otherUserId = args?['otherUserId'] as String?;
     _otherUserDisplay = args?['otherUserDisplay'] as String?;
+    _otherUserAvatar = args?['otherUserAvatar'] as String?;
     _currentUserId = await AuthService.instance.getUserId();
     if (_conversationId == null) {
       setState(() {
@@ -129,10 +131,12 @@ class _ConversationDetailsScreenState extends State<ConversationDetailsScreen> {
       appBar: AppBar(
         title: Row(
           children: [
-            const CircleAvatar(
+            CircleAvatar(
               radius: 18,
-              backgroundImage:
-                  NetworkImage('https://placehold.co/50x50/34d399/white?text=A'),
+              backgroundImage: NetworkImage(
+                _otherUserAvatar ??
+                    'https://placehold.co/50x50/34d399/white?text=A',
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(

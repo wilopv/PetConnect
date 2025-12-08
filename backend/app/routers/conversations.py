@@ -35,8 +35,8 @@ def list_conversations(current_user: dict = Depends(get_current_user)):
             user_b,
             created_at,
             last_message_at,
-            user_a_profile:profiles!conversations_user_a_fkey(pet_name,username),
-            user_b_profile:profiles!conversations_user_b_fkey(pet_name,username)
+            user_a_profile:profiles!conversations_user_a_fkey(pet_name,username,avatar_url),
+            user_b_profile:profiles!conversations_user_b_fkey(pet_name,username,avatar_url)
             """
         )
         .or_(f"user_a.eq.{current_user['id']},user_b.eq.{current_user['id']}")
