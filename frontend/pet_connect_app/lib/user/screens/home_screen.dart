@@ -18,35 +18,47 @@ class HomeScreen extends StatelessWidget {
         title: const LogoWidget(size: 28),
         centerTitle: true,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _HomeButton(
-              title: 'Ver Mi Perfil',
-              subtitle: 'Mira tu perfil y el de tu mascota.',
-              icon: Icons.pets,
-              color: kAccentColor,
-              onTap: () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Próximamente')))
-            ),
-            const SizedBox(height: 20),
-            _HomeButton(
-              title: 'Notificaciones',
-              subtitle: 'Ver tus "likes" y comentarios.',
-              icon: Icons.notifications,
-              color: kPrimaryColor,
-              onTap: () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Próximamente')))
-            ),
-            const SizedBox(height: 20),
-            _HomeButton(
-              title: 'Conversaciones',
-              subtitle: 'Chatea con otros dueños.',
-              icon: Icons.chat,
-              color: Colors.cyan,
-              onTap: () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Próximamente')))
-            ),
-          ],
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            children: [
+              _HomeButton(
+                title: 'Buscar Amigos',
+                subtitle: 'Encuentra y visita otros perfiles.',
+                icon: Icons.search,
+                color: Colors.deepPurple,
+                onTap: () => Navigator.pushNamed(context, '/search'),
+              ),
+              const SizedBox(height: 20),
+              _HomeButton(
+                title: 'Ver Mi Perfil',
+                subtitle: 'Mira tu perfil y el de tu mascota.',
+                icon: Icons.pets,
+                color: kAccentColor,
+                onTap: () => ScaffoldMessenger.of(context)
+                    .showSnackBar(const SnackBar(content: Text('Próximamente'))),
+              ),
+              const SizedBox(height: 20),
+              _HomeButton(
+                title: 'Notificaciones',
+                subtitle: 'Ver tus "likes" y comentarios.',
+                icon: Icons.notifications,
+                color: kPrimaryColor,
+                onTap: () => ScaffoldMessenger.of(context)
+                    .showSnackBar(const SnackBar(content: Text('Próximamente'))),
+              ),
+              const SizedBox(height: 20),
+              _HomeButton(
+                title: 'Conversaciones',
+                subtitle: 'Chatea con otros dueños.',
+                icon: Icons.chat,
+                color: Colors.cyan,
+                onTap: () => ScaffoldMessenger.of(context)
+                    .showSnackBar(const SnackBar(content: Text('Próximamente'))),
+              ),
+            ],
+          ),
         ),
       ),
     );
