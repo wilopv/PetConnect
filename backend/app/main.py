@@ -12,6 +12,7 @@ from .routers.post_likes import router as post_likes_router
 from .routers.conversations import router as conversations_router
 from .routers.reports import router as reports_router
 from .routers.moderation import router as moderation_router
+from .routers.notifications import router as notifications_router
 
 app = FastAPI()
 app.include_router(auth_router)
@@ -21,6 +22,7 @@ app.include_router(post_likes_router)
 app.include_router(conversations_router)
 app.include_router(reports_router)
 app.include_router(moderation_router)
+app.include_router(notifications_router)
 
 
 @app.get("/users/me")

@@ -14,6 +14,7 @@ from app.models import (
     MessageCreate,
     MessageResponse,
 )
+from app.notification_service import notify_user_about_message
 
 router = APIRouter(prefix="/conversations", tags=["conversations"])
 
@@ -146,7 +147,29 @@ def send_message(
         {"last_message_at": datetime.utcnow().isoformat()}
     ).eq("id", conversation_id).execute()
 
-    return insert_result.data[0]
+    message = insert_result.data[0]
+    convo = (
+        client.table("conversations")
+        .select("user_a, user_b")
+        .eq("id", conversation_id)
+        .single()
+        .execute()
+    ).data
+    if convo:
+        receiver = (
+            convo["user_a"]
+            if convo["user_a"] != current_user["id"]
+            else convo["user_b"]
+        )
+        notify_user_about_message(
+            client,
+            receiver_id=receiver,
+            author_id=current_user["id"],
+            conversation_id=conversation_id,
+            message_id=message["id"],
+        )
+
+    return message
 
 
 def _ensure_conversation_access(client, conversation_id: str, user_id: str):

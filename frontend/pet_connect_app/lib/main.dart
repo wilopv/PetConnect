@@ -15,8 +15,7 @@ import 'user/screens/search_screen.dart';
 import 'shared/profile/profile_screen.dart';
 import 'user/screens/conversations/conversation_list_screen.dart';
 import 'user/screens/conversations/conversation_details_screen.dart';
-
-
+import 'user/screens/notifications/notifications_screen.dart';
 void main() {
   runApp(const PetConnectApp());
 }
@@ -40,6 +39,7 @@ class PetConnectApp extends StatelessWidget {
         '/profile': (context) => const ProfileScreen(isOwner: true),
         '/conversations/list': (context) => const ConversationListScreen(),
         '/conversation/detail': (context) => const ConversationDetailsScreen(),
+        '/notifications': (context) => const NotificationsScreen(),
       },
     );
   }

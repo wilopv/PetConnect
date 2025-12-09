@@ -12,6 +12,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from app.dependencies import get_current_user
 from app.database import get_supabase_client, get_service_client
 from app.models import PostBase, PostCreate, PostResponse, PostCommentCreate
+from app.notification_service import notify_followers_about_post
 from .moderation import moderate_text_with_gemini
 
 USER_CONTENT_BUCKET = os.environ.get("SUPABASE_USER_BUCKET", "user-content")
@@ -85,7 +86,7 @@ def create_post(payload: PostCreate, current_user: dict = Depends(get_current_us
     )
 
     created_post = post_result.data
-
+    notify_followers_about_post(service, current_user["id"], created_post["id"])
     if auto_report_reason:
         _report_post_for_manual_review(service, created_post["id"], current_user["id"], auto_report_reason)
 

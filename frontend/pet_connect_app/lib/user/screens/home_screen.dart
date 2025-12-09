@@ -41,11 +41,10 @@ class HomeScreen extends StatelessWidget {
               const SizedBox(height: 20),
               _HomeButton(
                 title: 'Notificaciones',
-                subtitle: 'Ver tus "likes" y comentarios.',
+                subtitle: 'Seguimientos y mensajes nuevos.',
                 icon: Icons.notifications,
                 color: kPrimaryColor,
-                onTap: () => ScaffoldMessenger.of(context)
-                    .showSnackBar(const SnackBar(content: Text('Próximamente'))),
+                onTap: () => Navigator.pushNamed(context, '/notifications'),
               ),
               const SizedBox(height: 20),
               _HomeButton(
