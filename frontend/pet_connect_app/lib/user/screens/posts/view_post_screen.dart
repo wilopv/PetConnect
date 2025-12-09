@@ -11,6 +11,9 @@ import 'package:pet_connect_app/lib/services/likes_service.dart';
 import 'package:pet_connect_app/lib/services/post_comments_service.dart';
 import 'package:pet_connect_app/lib/services/auth_service.dart';
 import 'package:pet_connect_app/widgets/report_sheet.dart';
+import 'package:pet_connect_app/user/screens/posts/view_post_media.dart';
+import 'package:pet_connect_app/user/screens/posts/view_post_comments.dart';
+import 'package:pet_connect_app/user/screens/posts/new_comment_input.dart';
 
 class ViewPostScreen extends StatefulWidget {
   final String postId;
@@ -174,6 +177,36 @@ class _ViewPostScreenState extends State<ViewPostScreen> {
     );
   }
 
+  Future<void> _handleToggleLike(bool likedByMe) async {
+    setState(() => _liking = true);
+    try {
+      if (likedByMe) {
+        await LikesService.unlikePost(widget.postId);
+        if (!mounted) return;
+        setState(() {
+          _post!['liked_by_me'] = false;
+          _post!['likes_count'] = (_post!['likes_count'] ?? 1) - 1;
+        });
+      } else {
+        await LikesService.likePost(widget.postId);
+        if (!mounted) return;
+        setState(() {
+          _post!['liked_by_me'] = true;
+          _post!['likes_count'] = (_post!['likes_count'] ?? 0) + 1;
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_formatError(e))),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _liking = false);
+      }
+    }
+  }
+
   void _confirmDeleteComment(String commentId) {
     showDialog(
       context: context,
@@ -252,88 +285,14 @@ class _ViewPostScreenState extends State<ViewPostScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(
-                    maxWidth: 500,
-                    maxHeight: 360,
-                  ),
-                  child: AspectRatio(
-                    aspectRatio: 4 / 5,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.network(
-                        _post!['image_url'] ?? '',
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) =>
-                            const Center(child: Text('Sin imagen')),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (formattedDate != null)
-                      Text(
-                        formattedDate,
-                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                      ),
-                    const SizedBox(height: 8),
-                    Text(
-                      _post!['description']?.toString().trim().isNotEmpty == true
-                          ? _post!['description']
-                          : 'Sin descripción',
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      '${_post!['likes_count'] ?? 0} me gusta',
-                      style: const TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                    IconButton(
-                      icon: Icon(
-                        likedByMe ? Icons.favorite : Icons.favorite_border,
-                        color: likedByMe ? Colors.red : Colors.grey[600],
-                      ),
-                      onPressed: _liking
-                          ? null
-                          : () async {
-                              setState(() => _liking = true);
-                              try {
-                                if (likedByMe) {
-                                  await LikesService.unlikePost(widget.postId);
-                                  setState(() {
-                                    _post!['liked_by_me'] = false;
-                                    _post!['likes_count'] =
-                                        (_post!['likes_count'] ?? 1) - 1;
-                                  });
-                                } else {
-                                  await LikesService.likePost(widget.postId);
-                                  setState(() {
-                                    _post!['liked_by_me'] = true;
-                                    _post!['likes_count'] =
-                                        (_post!['likes_count'] ?? 0) + 1;
-                                  });
-                                }
-                              } catch (e) {
-                                if (mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text(_formatError(e))),
-                                  );
-                                }
-                              } finally {
-                                if (mounted) {
-                                  setState(() => _liking = false);
-                                }
-                              }
-                            },
-                    ),
-                  ],
-                ),
+              ViewPostMedia(
+                imageUrl: _post!['image_url'] ?? '',
+                description: _post!['description']?.toString().trim() ?? '',
+                formattedDate: formattedDate,
+                likesCount: _post!['likes_count'] ?? 0,
+                likedByMe: likedByMe,
+                liking: _liking,
+                onToggleLike: () => _handleToggleLike(likedByMe),
               ),
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16.0),
@@ -343,80 +302,19 @@ class _ViewPostScreenState extends State<ViewPostScreen> {
                 ),
               ),
               const SizedBox(height: 8),
-              _comments.isEmpty
-                  ? const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Text('Aún no hay comentarios en esta publicación'),
-                    )
-                  : ListView.separated(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: _comments.length,
-                      separatorBuilder: (_, __) =>
-                          const Divider(height: 1, indent: 16, endIndent: 16),
-                      itemBuilder: (context, index) {
-                        final comment = _comments[index];
-                        final profile = comment['profiles'] as Map<String, dynamic>?;
-                        final commentId = comment['id']?.toString();
-                        final canDelete = comment['user_id'] == _currentUserId && commentId != null;
-                        final isDeleting = commentId != null && _deletingComments.contains(commentId);
-                        return ListTile(
-                          leading: CircleAvatar(
-                            backgroundImage: profile?['avatar_url'] != null
-                                ? NetworkImage(profile!['avatar_url'])
-                                : const NetworkImage('https://placehold.co/50'),
-                          ),
-                          title: Text(profile?['username'] ?? 'Usuario'),
-                          subtitle: Text(comment['content'] ?? ''),
-                          trailing: canDelete
-                              ? IconButton(
-                                  icon: isDeleting
-                                      ? const SizedBox(
-                                          width: 18,
-                                          height: 18,
-                                          child: CircularProgressIndicator(strokeWidth: 2),
-                                        )
-                                      : const Icon(Icons.delete_outline),
-                                  onPressed: isDeleting
-                                      ? null
-                                      : () => _confirmDeleteComment(commentId!),
-                                )
-                              : IconButton(
-                                  tooltip: 'Reportar comentario',
-                                  icon: const Icon(Icons.flag_outlined, color: Colors.redAccent),
-                                  onPressed: commentId == null
-                                      ? null
-                                      : () => showReportCommentSheet(context, commentId),
-                                ),
-                        );
-                      },
-                    ),
+              ViewPostComments(
+                comments: _comments,
+                currentUserId: _currentUserId,
+                deletingCommentIds: _deletingComments,
+                onDelete: _confirmDeleteComment,
+                onReport: (id) => showReportCommentSheet(context, id),
+              ),
               Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _commentController,
-                        decoration: const InputDecoration(
-                          hintText: 'Escribe un comentario...',
-                        ),
-                        minLines: 1,
-                        maxLines: 3,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    IconButton(
-                      icon: _sendingComment
-                          ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Icon(Icons.send),
-                      onPressed: _sendingComment ? null : _sendComment,
-                    ),
-                  ],
+                child: NewCommentInput(
+                  controller: _commentController,
+                  sending: _sendingComment,
+                  onSend: _sendComment,
                 ),
               ),
             ],

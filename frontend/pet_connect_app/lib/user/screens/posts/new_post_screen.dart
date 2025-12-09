@@ -30,14 +30,20 @@ class _NewPostScreenState extends State<NewPostScreen> {
     super.dispose();
   }
 
-  /// Abre cámara o galería y almacena temporalmente el archivo seleccionado.
+  // Autor: Wilbert López Veras
+  // Fecha de creación: 6 de Diciembre de 2025
+  // Descripción:
+  // Abre el selector de imágenes para elegir una foto desde la galería o cámara.
   Future<void> _pickImage(ImageSource source) async {
     final picked = await _picker.pickImage(source: source, imageQuality: 85);
     if (picked == null) return;
     setState(() => _selectedImage = picked);
   }
 
-  /// Convierte la imagen a base64 y envía la nueva publicación al backend.
+  // Autor: Wilbert López Veras
+  // Fecha de creación: 6 de Diciembre de 2025
+  // Descripción:
+  // Maneja el envío de la nueva publicación al servidor.
   Future<void> _submitPost() async {
     if (_selectedImage == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -79,6 +85,10 @@ class _NewPostScreenState extends State<NewPostScreen> {
     }
   }
 
+  // Autor: Wilbert López Veras
+  // Fecha de creación: 6 de Diciembre de 2025
+  // Descripción:
+  // Formatea el error recibido para mostrar un mensaje más amigable al usuario.
   String _formatError(Object error) {
     final raw = error.toString().trim();
     try {
@@ -93,6 +103,10 @@ class _NewPostScreenState extends State<NewPostScreen> {
     return raw.replaceFirst('Exception: ', '');
   }
 
+  // Autor: Wilbert López Veras
+  // Fecha de creación: 6 de Diciembre de 2025
+  // Descripción:
+  // Obtiene el MIME type basado en la extensión del archivo.
   String _mimeFromPath(String path) {
     final extension = path.split('.').last.toLowerCase();
     switch (extension) {
