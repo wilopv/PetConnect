@@ -128,6 +128,117 @@ def update_my_profile(payload: ProfileUpdate, user = Depends(get_current_user)):
     return update_result.data[0]
 
 
+@router.put("/{user_id}", response_model=Profile)
+def update_profile_by_admin(
+    user_id: str,
+    payload: ProfileUpdate,
+    user = Depends(get_current_user),
+):
+    """
+    Autor: Wilbert Lopez Veras
+    Fecha: 09-12-2025
+    Descripcion: Permite a moderadores editar el perfil de cualquier usuario.
+    """
+
+    if user.get("role") not in ("moderator", "admin"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No autorizado para editar otros perfiles",
+        )
+
+    service = get_service_client()
+    payload_dict = payload.dict(exclude_unset=True)
+    avatar_base64 = payload_dict.pop("avatar_base64", None)
+    update_data = {k: v for k, v in payload_dict.items() if v is not None}
+    if not update_data and not avatar_base64:
+        raise HTTPException(400, "No hay campos para actualizar")
+
+    profile_result = (
+        service.table("profiles")
+        .select("city, postal_code")
+        .eq("id", user_id)
+        .single()
+        .execute()
+    )
+    current_profile = profile_result.data
+    if not current_profile:
+        raise HTTPException(404, "Perfil no encontrado")
+
+    if avatar_base64:
+        try:
+            avatar_url = _upload_avatar(service, user_id, avatar_base64)
+            update_data["avatar_url"] = avatar_url
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc))
+        except Exception:
+            raise HTTPException(
+                status_code=500,
+                detail="No se pudo actualizar la imagen de perfil",
+            )
+
+    if "city" in update_data or "postal_code" in update_data:
+        target_city = update_data.get("city", current_profile.get("city"))
+        target_postal = update_data.get("postal_code", current_profile.get("postal_code"))
+        if target_city or target_postal:
+            latitude, longitude = geocode_address(target_city, target_postal)
+            update_data["latitude"] = latitude
+            update_data["longitude"] = longitude
+
+    try:
+        update_result = (
+            service.table("profiles")
+            .update(update_data, returning="representation")
+            .eq("id", user_id)
+            .execute()
+        )
+    except APIError as e:
+        if e.code == "23505":
+            raise HTTPException(
+                status_code=400,
+                detail="El nombre de usuario ya está en uso"
+            )
+        raise
+
+    if not update_result.data:
+        raise HTTPException(404, "Perfil no encontrado")
+
+    return update_result.data[0]
+
+
+@router.delete("/{user_id}")
+def delete_profile_by_admin(
+    user_id: str,
+    user = Depends(get_current_user),
+):
+    """
+    Autor: Wilbert Lopez Veras
+    Fecha: 09-12-2025
+    Descripcion: Permite a moderadores eliminar un perfil.
+    """
+
+    if user.get("role") not in ("moderator", "admin"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No autorizado para eliminar perfiles",
+        )
+
+    service = get_service_client()
+    try:
+        service.auth.admin.delete_user(user_id)
+    except Exception:
+        raise HTTPException(
+            status_code=400,
+            detail="No se pudo eliminar el usuario de autenticación",
+        )
+
+    try:
+        service.table("profiles").delete().eq("id", user_id).execute()
+    except Exception:
+        pass
+
+    return {"message": "Perfil eliminado"}
+
+
 @router.get("/search")
 def search_profiles(query: str, limit: int = 20):
     """

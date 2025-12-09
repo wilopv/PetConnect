@@ -65,6 +65,49 @@ class ProfileService {
     return json.decode(response.body);
   }
 
+  Future<Map<String, dynamic>> updateProfileById(
+      String userId, Map<String, dynamic> data) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl/profile/$userId'),
+      headers: _headers,
+      body: json.encode(data),
+    );
+
+    if (response.statusCode == 400) {
+      final body = json.decode(response.body);
+      throw Exception(body['detail'] ?? 'No se pudo actualizar el perfil');
+    }
+
+    if (response.statusCode == 403) {
+      throw Exception('No tienes permisos para editar este perfil');
+    }
+
+    if (response.statusCode != 200) {
+      throw Exception('Error actualizando perfil');
+    }
+
+    return json.decode(response.body);
+  }
+
+  Future<void> deleteProfileById(String userId) async {
+    final response = await http.delete(
+      Uri.parse('$baseUrl/profile/$userId'),
+      headers: _headers,
+    );
+
+    if (response.statusCode == 403) {
+      throw Exception('No tienes permisos para eliminar este perfil');
+    }
+
+    if (response.statusCode == 404) {
+      throw Exception('Perfil no encontrado');
+    }
+
+    if (response.statusCode != 200) {
+      throw Exception('No se pudo eliminar el perfil');
+    }
+  }
+
   // GET /profile/search
   Future<List<Map<String, dynamic>>> searchProfiles(String query) async {
     final uri = Uri.parse('$baseUrl/profile/search')

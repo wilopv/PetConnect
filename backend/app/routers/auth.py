@@ -126,7 +126,7 @@ def signup(payload: SignUpRequest):
         # No interrumpimos el registro si falla la creación de carpetas.
         print(f"No se pudo preparar el almacenamiento del usuario {user.id}: {exc}")
 
-    token = create_access_token({"sub": user.id})
+    token = create_access_token({"sub": user.id, "role": "user"})
     return TokenResponse(
         access_token=token,
         token_type="bearer",
@@ -225,7 +225,7 @@ def login(payload: LoginRequest):
 
     
 
-    token = create_access_token({"sub": user.id}) 
+    token = create_access_token({"sub": user.id, "role": role}) 
     return TokenResponse(
         access_token=token,
         token_type="bearer",

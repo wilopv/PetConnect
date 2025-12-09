@@ -30,6 +30,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   String? _currentAvatarUrl;
   String? _avatarBase64;
   File? _avatarFile;
+  String? _editingUserId;
+  bool _editingOwnProfile = true;
 
   bool _loading = true;
   bool _saving = false;
@@ -48,6 +50,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Future<void> _initProfile() async {
     final token = await AuthService.instance.getToken();
+    final currentUserId = await AuthService.instance.getUserId();
 
     if (!mounted) return;
 
@@ -67,6 +70,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     try {
       final profile = widget.profile;
+      _editingUserId = profile['id']?.toString();
+      _editingOwnProfile =
+          currentUserId != null && _editingUserId == currentUserId;
       _usernameController.text = profile['username'] ?? '';
       _postalController.text = profile['postal_code'] ?? '';
       _cityController.text = profile['city'] ?? '';
@@ -112,7 +118,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     payload.removeWhere((key, value) => value == null);
 
     try {
-      await _profileService!.updateMyProfile(payload);
+      if (_editingOwnProfile || _editingUserId == null) {
+        await _profileService!.updateMyProfile(payload);
+      } else {
+        await _profileService!.updateProfileById(_editingUserId!, payload);
+      }
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Perfil actualizado')),
