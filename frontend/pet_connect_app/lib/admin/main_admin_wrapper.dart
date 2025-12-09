@@ -7,7 +7,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import 'screens/admin_user_list_screen.dart';
-import 'screens/admin_post_moderate_screen.dart';
+import 'screens/admin_report_moderate_screen.dart';
 import '../shared/profile/profile_screen.dart';
 
 
@@ -25,7 +25,7 @@ class _MainAdminWrapperState extends State<MainAdminWrapper> {
 
   final List<Widget> _screens = const [
     AdminUserListScreen(),
-    AdminPostModerateScreen(),
+    AdminReportModerateScreen(),
     ProfileScreen(),
   ];
 

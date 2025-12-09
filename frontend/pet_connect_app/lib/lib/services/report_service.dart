@@ -136,4 +136,86 @@ class ReportService {
       throw Exception('No se pudo eliminar el post');
     }
   }
+
+  Future<List<Map<String, dynamic>>> getCommentReports() async {
+    final token = await _getToken();
+    if (token == null) {
+      throw Exception('Debes iniciar sesión');
+    }
+
+    final response = await http.get(
+      Uri.parse('${ApiConfig.baseUrl}/reports/comments'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 403) {
+      throw Exception('No tienes permisos para ver los reportes');
+    }
+
+    if (response.statusCode != 200) {
+      throw Exception('No se pudieron cargar los reportes');
+    }
+
+    final List<dynamic> data = jsonDecode(response.body);
+    return data.cast<Map<String, dynamic>>();
+  }
+
+  Future<void> ignoreCommentReport(String reportId) async {
+    final token = await _getToken();
+    if (token == null) {
+      throw Exception('Debes iniciar sesión');
+    }
+
+    final response = await http.delete(
+      Uri.parse('${ApiConfig.baseUrl}/reports/comments/$reportId'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 404) {
+      throw Exception('Reporte no encontrado');
+    }
+
+    if (response.statusCode == 403) {
+      throw Exception('No tienes permisos para esta acción');
+    }
+
+    if (response.statusCode != 200) {
+      throw Exception('No se pudo ignorar el reporte');
+    }
+  }
+
+  Future<void> deleteCommentAsModerator(
+      String postId, String commentId) async {
+    final token = await _getToken();
+    if (token == null) {
+      throw Exception('Debes iniciar sesión');
+    }
+
+    final response = await http.delete(
+      Uri.parse(
+          '${ApiConfig.baseUrl}/posts/$postId/comments/$commentId/moderate'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 404) {
+      throw Exception('Comentario no encontrado');
+    }
+
+    if (response.statusCode == 403) {
+      throw Exception('No tienes permisos para eliminar este comentario');
+    }
+
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      throw Exception('No se pudo eliminar el comentario');
+    }
+  }
 }

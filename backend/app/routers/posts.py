@@ -263,6 +263,37 @@ def delete_comment(post_id: str, comment_id: str, current_user: dict = Depends(g
     return {"detail": "Comentario eliminado"}
 
 
+@router.delete("/{post_id}/comments/{comment_id}/moderate")
+def delete_comment_as_moderator(post_id: str, comment_id: str, current_user: dict = Depends(get_current_user)):
+    """
+    Autor: Wilbert Lopez Veras
+    Fecha: 10-12-2025
+    Descripcion: Permite a moderadores eliminar cualquier comentario.
+    """
+
+    if current_user.get("role") not in ("moderator", "admin"):
+        raise HTTPException(status_code=403, detail="No autorizado")
+
+    service = get_service_client()
+    try:
+        comment_result = (
+            service.table("post_comments")
+            .select("id, post_id")
+            .eq("id", comment_id)
+            .single()
+            .execute()
+        )
+    except Exception:
+        raise HTTPException(status_code=404, detail="Comentario no encontrado")
+
+    comment = comment_result.data
+    if not comment or comment.get("post_id") != post_id:
+        raise HTTPException(status_code=404, detail="Comentario no encontrado")
+
+    service.table("post_comments").delete().eq("id", comment_id).execute()
+    return {"detail": "Comentario eliminado"}
+
+
 def _upload_post_image(service_client, user_id: str, image_base64: str) -> str:
     if not USER_CONTENT_BUCKET:
         raise ValueError("No hay bucket configurado para guardar imágenes.")
