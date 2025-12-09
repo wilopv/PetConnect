@@ -120,6 +120,36 @@ def delete_post(post_id: str, current_user: dict = Depends(get_current_user)):
     service.table("posts").delete().eq("id", post_id).execute()
 
 
+@router.delete("/{post_id}/moderate", status_code=status.HTTP_204_NO_CONTENT)
+def delete_post_as_moderator(post_id: str, current_user: dict = Depends(get_current_user)):
+    """
+    Autor: Wilbert Lopez Veras
+    Fecha: 10-12-2025
+    Descripcion: Elimina un post sin importar propietario (uso moderador).
+    """
+
+    if current_user.get("role") not in ("moderator", "admin"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No autorizado para eliminar este post",
+        )
+
+    service = get_service_client()
+    existing = (
+        service.table("posts")
+        .select("id,image_url")
+        .eq("id", post_id)
+        .single()
+        .execute()
+    )
+    data = existing.data
+    if not data:
+        raise HTTPException(status_code=404, detail="Post no encontrado")
+
+    _delete_post_image(service, data.get("image_url"))
+    service.table("posts").delete().eq("id", post_id).execute()
+
+
 @router.get("/{post_id}", response_model=PostResponse)
 def get_post(post_id: str, current_user: dict = Depends(get_current_user)):
     """
