@@ -8,6 +8,9 @@ import 'package:pet_connect_app/lib/services/report_service.dart';
 import 'package:pet_connect_app/user/screens/posts/view_post_screen.dart';
 
 import '../../theme/app_colors.dart';
+import 'admin_report_button.dart';
+import 'admin_report_card.dart';
+import 'admin_reports_list.dart';
 
 class AdminReportModerateScreen extends StatefulWidget {
   const AdminReportModerateScreen({super.key});
@@ -37,6 +40,10 @@ class _AdminReportModerateScreenState
     _loadCommentReports();
   }
 
+  // Autor: Wilbert López Veras
+  // Fecha de creación: 1 de diciembre de 2025
+  // Descripción:
+  // Carga los reportes de posts desde el servidor.
   Future<void> _loadPostReports() async {
     setState(() {
       _loadingPosts = true;
@@ -56,6 +63,10 @@ class _AdminReportModerateScreenState
     }
   }
 
+  // Autor: Wilbert López Veras
+  // Fecha de creación: 1 de diciembre de 2025
+  // Descripción:
+  // Carga los reportes de comentarios desde el servidor.
   Future<void> _loadCommentReports() async {
     setState(() {
       _loadingComments = true;
@@ -75,6 +86,10 @@ class _AdminReportModerateScreenState
     }
   }
 
+  // Autor: Wilbert López Veras
+  // Fecha de creación: 1 de diciembre de 2025
+  // Descripción:
+  // Ignora un reporte de post por su ID.
   Future<void> _ignorePostReport(String reportId) async {
     try {
       await _reportService.ignorePostReport(reportId);
@@ -91,6 +106,10 @@ class _AdminReportModerateScreenState
     }
   }
 
+  // Autor: Wilbert López Veras
+  // Fecha de creación: 1 de diciembre de 2025
+  // Descripción:
+  // Ignora un reporte de comentario por su ID.
   Future<void> _ignoreCommentReport(String reportId) async {
     try {
       await _reportService.ignoreCommentReport(reportId);
@@ -107,6 +126,10 @@ class _AdminReportModerateScreenState
     }
   }
 
+  // Autor: Wilbert López Veras
+  // Fecha de creación: 1 de diciembre de 2025
+  // Descripción:
+  // Elimina un post reportado por su ID y el ID del reporte.
   Future<void> _deleteReportedPost(String reportId, String postId) async {
     try {
       await _reportService.deletePostAsModerator(postId);
@@ -128,6 +151,10 @@ class _AdminReportModerateScreenState
     }
   }
 
+  // Autor: Wilbert López Veras
+  // Fecha de creación: 1 de diciembre de 2025
+  // Descripción:
+  // Elimina un comentario reportado por su ID y el ID del reporte.
   Future<void> _deleteReportedComment(
     String reportId,
     String postId,
@@ -153,6 +180,10 @@ class _AdminReportModerateScreenState
     }
   }
 
+  // Autor: Wilbert López Veras
+  // Fecha de creación: 1 de diciembre de 2025
+  // Descripción:
+  // Muestra un diálogo de confirmación antes de eliminar un post.
   void _confirmDeletePost(String reportId, String postId) {
     showDialog(
       context: context,
@@ -177,6 +208,10 @@ class _AdminReportModerateScreenState
     );
   }
 
+  // Autor: Wilbert López Veras
+  // Fecha de creación: 1 de diciembre de 2025
+  // Descripción:
+  // Muestra un diálogo de confirmación antes de eliminar un comentario.
   void _confirmDeleteComment(
     String reportId,
     String postId,
@@ -239,7 +274,7 @@ class _AdminReportModerateScreenState
       body: TabBarView(
         controller: _tabController,
         children: [
-          _ReportsList(
+          AdminReportsList(
             loading: _loadingPosts,
             error: _errorPosts,
             onRefresh: _loadPostReports,
@@ -261,7 +296,7 @@ class _AdminReportModerateScreenState
                   ? post['description']
                   : 'Sin descripción';
 
-              return _ReportCard(
+              return AdminReportCard(
                 imageUrl: imageUrl,
                 body: [
                   _labelValue('Descripción: ', description),
@@ -279,7 +314,7 @@ class _AdminReportModerateScreenState
                   _labelValue('Motivo: ', report['reason'] ?? 'Sin motivo'),
                 ],
                 actions: [
-                  _ReportButton(
+                  AdminReportButton(
                     label: 'Ver',
                     color: kPrimaryColor,
                     onPressed: postId.isEmpty
@@ -294,12 +329,12 @@ class _AdminReportModerateScreenState
                               ),
                             ),
                   ),
-                  _ReportButton(
+                  AdminReportButton(
                     label: 'Ignorar',
                     color: Colors.grey[500],
                     onPressed: () => _ignorePostReport(report['id']),
                   ),
-                  _ReportButton(
+                  AdminReportButton(
                     label: 'Eliminar Post',
                     color: Colors.red,
                     onPressed: postId.isEmpty
@@ -310,7 +345,7 @@ class _AdminReportModerateScreenState
               );
             },
           ),
-          _ReportsList(
+          AdminReportsList(
             loading: _loadingComments,
             error: _errorComments,
             onRefresh: _loadCommentReports,
@@ -327,7 +362,7 @@ class _AdminReportModerateScreenState
               final content =
                   comment['content']?.toString() ?? 'Sin contenido';
 
-              return _ReportCard(
+              return AdminReportCard(
                 imageUrl: null,
                 body: [
                   _labelValue('Comentario: ', content),
@@ -345,7 +380,7 @@ class _AdminReportModerateScreenState
                   _labelValue('Motivo: ', report['reason'] ?? 'Sin motivo'),
                 ],
                 actions: [
-                  _ReportButton(
+                  AdminReportButton(
                     label: 'Ver',
                     color: kPrimaryColor,
                     onPressed: postId.isEmpty
@@ -360,12 +395,12 @@ class _AdminReportModerateScreenState
                               ),
                             ),
                   ),
-                  _ReportButton(
+                  AdminReportButton(
                     label: 'Ignorar',
                     color: Colors.grey[500],
                     onPressed: () => _ignoreCommentReport(report['id']),
                   ),
-                  _ReportButton(
+                  AdminReportButton(
                     label: 'Eliminar comentario',
                     color: Colors.red,
                     onPressed: postId.isEmpty || commentId.isEmpty
@@ -387,136 +422,10 @@ class _AdminReportModerateScreenState
   }
 }
 
-class _ReportsList extends StatelessWidget {
-  final bool loading;
-  final String? error;
-  final Future<void> Function() onRefresh;
-  final List<Map<String, dynamic>> items;
-  final Widget Function(BuildContext, Map<String, dynamic>) builder;
-
-  const _ReportsList({
-    required this.loading,
-    required this.error,
-    required this.onRefresh,
-    required this.items,
-    required this.builder,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    if (loading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (error != null) {
-      return Center(child: Text(error!));
-    }
-    if (items.isEmpty) {
-      return RefreshIndicator(
-        onRefresh: onRefresh,
-        child: ListView(
-          children: const [
-            SizedBox(height: 60),
-            Center(child: Text('No hay reportes')),
-          ],
-        ),
-      );
-    }
-
-    return RefreshIndicator(
-      onRefresh: onRefresh,
-      child: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: items.length,
-        itemBuilder: (context, index) => builder(context, items[index]),
-      ),
-    );
-  }
-}
-
-class _ReportCard extends StatelessWidget {
-  final String? imageUrl;
-  final List<Widget> body;
-  final List<_ReportButton> actions;
-
-  const _ReportCard({
-    required this.imageUrl,
-    required this.body,
-    required this.actions,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      elevation: 2,
-      clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (imageUrl != null && imageUrl!.isNotEmpty)
-            Image.network(
-              imageUrl!,
-              height: 220,
-              width: double.infinity,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(
-                height: 220,
-                color: Colors.grey[200],
-                alignment: Alignment.center,
-                child: const Text('Sin imagen'),
-              ),
-            ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ...body,
-                const SizedBox(height: 16),
-                Row(
-                  children: List.generate(actions.length, (index) {
-                    final button = actions[index];
-                    return Expanded(
-                      child: Padding(
-                        padding: EdgeInsets.only(
-                          right: index == actions.length - 1 ? 0 : 16,
-                        ),
-                        child: button,
-                      ),
-                    );
-                  }),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ReportButton extends StatelessWidget {
-  final String label;
-  final Color? color;
-  final VoidCallback? onPressed;
-
-  const _ReportButton({
-    required this.label,
-    required this.onPressed,
-    this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ElevatedButton(
-      onPressed: onPressed,
-      style: ElevatedButton.styleFrom(backgroundColor: color),
-      child: Text(label),
-    );
-  }
-}
-
+// Autor: Wilbert López Veras
+// Fecha de creación: 1 de diciembre de 2025
+// Descripción:
+// Widget que muestra una etiqueta y su valor correspondiente.
 Widget _labelValue(String label, String value) {
   return Text.rich(
     TextSpan(
