@@ -11,7 +11,7 @@ import 'auth/signup_screen.dart';
 import 'theme/app_theme.dart';
 import 'user/main_wrapper.dart';
 import 'admin/main_admin_wrapper.dart';
-import 'user/screens/search_screen.dart';
+import 'user/screens/search/search_screen.dart';
 import 'shared/profile/profile_screen.dart';
 import 'user/screens/conversations/conversation_list_screen.dart';
 import 'user/screens/conversations/conversation_details_screen.dart';

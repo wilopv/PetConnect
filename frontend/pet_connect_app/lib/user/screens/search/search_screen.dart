@@ -14,6 +14,9 @@ import 'package:pet_connect_app/lib/services/auth_service.dart';
 import 'package:pet_connect_app/lib/services/profile_service.dart';
 import 'package:pet_connect_app/shared/profile/profile_screen.dart';
 import 'package:pet_connect_app/widgets/search_map.dart';
+import 'package:pet_connect_app/user/screens/search/map_status_overlay.dart';
+import 'package:pet_connect_app/user/screens/search/search_location_controls.dart';
+import 'package:pet_connect_app/user/screens/search/search_results_overlay.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -64,6 +67,10 @@ class _SearchScreenState extends State<SearchScreen> {
     super.dispose();
   }
 
+  // Autor: Wilbert López Veras
+  // Fecha de creación: 26 de Noviembre de 2025
+  // Descripción:
+  // Configura el servicio de perfiles y centra el mapa en la ubicación del usuario.
   Future<void> _setupService() async {
     final token = await AuthService.instance.getToken();
     final userId = await AuthService.instance.getUserId();
@@ -83,6 +90,9 @@ class _SearchScreenState extends State<SearchScreen> {
     await _centerMapOnProfile();
   }
 
+  // Autor: Wilbert López Veras
+  // Fecha de creación: 26 de Noviembre de 2025
+  // Descripción: Maneja los cambios en el campo de búsqueda con debounce.
   void _onQueryChanged(String value) {
     setState(() {
       _query = value;
@@ -92,6 +102,9 @@ class _SearchScreenState extends State<SearchScreen> {
     _debounce = Timer(const Duration(milliseconds: 300), _performSearch);
   }
 
+  // Autor: Wilbert López Veras
+  // Fecha de creación: 26 de Noviembre de 2025
+  // Descripción: Realiza la búsqueda de perfiles según el query actual.
   Future<void> _performSearch() async {
     if (_profileService == null || _query.trim().length < 2) {
       setState(() => _results = []);
@@ -119,6 +132,9 @@ class _SearchScreenState extends State<SearchScreen> {
     }
   }
 
+  // Autor: Wilbert López Veras
+  // Fecha de creación: 26 de Noviembre de 2025
+  // Descripción: Centra el mapa en la ubicación del perfil del usuario actual.
   Future<void> _centerMapOnProfile() async {
     if (_profileService == null) return;
     try {
@@ -168,6 +184,9 @@ class _SearchScreenState extends State<SearchScreen> {
     }
   }
 
+  // Autor: Wilbert López Veras
+  // Fecha de creación: 26 de Noviembre de 2025
+  // Descripción: Aplica los filtros de ubicación y actualiza el mapa.
   Future<void> _applyLocationFilters() async {
     if (_profileService == null) return;
     final postal = _postalFilterController.text.trim();
@@ -226,6 +245,9 @@ class _SearchScreenState extends State<SearchScreen> {
     }
   }
 
+  // Autor: Wilbert López Veras
+  // Fecha de creación: 26 de Noviembre de 2025
+  // Descripción: Carga perfiles cercanos y actualiza los marcadores en el mapa
   Future<void> _loadNearbyProfiles(LatLng origin) async {
     if (_profileService == null) return;
     setState(() {
@@ -261,6 +283,9 @@ class _SearchScreenState extends State<SearchScreen> {
     }
   }
 
+  // Autor: Wilbert López Veras
+  // Fecha de creación: 26 de Noviembre de 2025
+  // Descripción: Recarga los marcadores cercanos en el mapa.
   Future<void> _reloadNearbyMarkers() async {
     if (_myCoordinates != null) {
       await _loadNearbyProfiles(_myCoordinates!);
@@ -269,6 +294,9 @@ class _SearchScreenState extends State<SearchScreen> {
     }
   }
 
+  // Autor: Wilbert López Veras
+  // Fecha de creación: 26 de Noviembre de 2025
+  // Descripción: Actualiza los marcadores en el mapa según los perfiles dados.
   Future<void> _updateMarkersFromProfiles(
       List<Map<String, dynamic>> profiles) async {
     if (profiles.isEmpty) {
@@ -278,6 +306,9 @@ class _SearchScreenState extends State<SearchScreen> {
     await _setMarkers(profiles);
   }
 
+  // Autor: Wilbert López Veras
+  // Fecha de creación: 26 de Noviembre de 2025
+  // Descripción: Establece los marcadores en el mapa basados en los perfiles
   Future<void> _setMarkers(List<Map<String, dynamic>> profiles) async {
     final newMarkers = <Marker>[];
     for (final profile in profiles) {
@@ -366,6 +397,9 @@ class _SearchScreenState extends State<SearchScreen> {
     });
   }
 
+  // Autor: Wilbert López Veras
+  // Fecha de creación: 26 de Noviembre de 2025
+  // Descripción: Limpia todos los marcadores del mapa.
   Future<void> _clearMarkers() async {
     if (!mounted) return;
     setState(() {
@@ -373,6 +407,9 @@ class _SearchScreenState extends State<SearchScreen> {
     });
   }
 
+  // Autor: Wilbert López Veras
+  // Fecha de creación: 26 de Noviembre de 2025
+  // Descripción: Abre la pantalla de perfil para el ID dado.
   void _openProfile(String profileId) {
     Navigator.push(
       context,
@@ -385,6 +422,9 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
+  // Autor: Wilbert López Veras
+  // Fecha de creación: 26 de Noviembre de 2025
+  // Descripción: Mueve el mapa a la ubicación objetivo dada.
   void _moveMapTo(LatLng target, {double zoom = 11}) {
     if (_mapReady) {
       _mapController.move(target, zoom);
@@ -393,6 +433,9 @@ class _SearchScreenState extends State<SearchScreen> {
     }
   }
 
+  // Autor: Wilbert López Veras
+  // Fecha de creación: 26 de Noviembre de 2025
+  // Descripción: Marca el mapa como listo y mueve a la ubicación pendiente si existe.
   void _onMapReady() {
     _mapReady = true;
     if (_pendingCenter != null) {
@@ -401,181 +444,17 @@ class _SearchScreenState extends State<SearchScreen> {
     }
   }
 
-  Widget _buildMapOverlay() {
-    final postalText =
-        _currentPostal == null || _currentPostal!.isEmpty ? 'Sin CP' : _currentPostal!;
-    final cityText =
-        _currentCity == null || _currentCity!.isEmpty ? 'Sin ciudad' : _currentCity!;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.15),
-            blurRadius: 6,
-            offset: const Offset(0, 3),
-          )
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            _mapStatusMessage,
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-              color: _mapError ? Colors.redAccent : Colors.black87,
-            ),
-          ),
-          Text(
-            'CP: $postalText',
-            style: const TextStyle(fontSize: 12, color: Colors.black54),
-          ),
-          Text(
-            'Ciudad: $cityText',
-            style: const TextStyle(fontSize: 12, color: Colors.black54),
-          ),
-          if (_loadingMarkers)
-            const Padding(
-              padding: EdgeInsets.only(top: 4),
-              child: SizedBox(
-                width: 16,
-                height: 16,
-                child: CircularProgressIndicator(strokeWidth: 2.4),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSearchOverlay() {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Material(
-          elevation: 4,
-          borderRadius: BorderRadius.circular(12),
-          child: TextField(
-            controller: _controller,
-            decoration: InputDecoration(
-              hintText: 'Ingresa nombre de usuario',
-              prefixIcon: const Icon(Icons.search),
-              filled: true,
-              fillColor: Colors.white,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
-              ),
-            ),
-            onChanged: _onQueryChanged,
-          ),
-        ),
-        const SizedBox(height: 8),
-        AnimatedSwitcher(
-          duration: const Duration(milliseconds: 250),
-          child: _query.isEmpty
-              ? const SizedBox.shrink()
-              : ConstrainedBox(
-                  key: ValueKey(_query),
-                  constraints: const BoxConstraints(maxHeight: 260),
-                  child: Material(
-                    elevation: 6,
-                    borderRadius: BorderRadius.circular(16),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(16),
-                      child: Container(
-                        color: Colors.white,
-                        child: _loading
-                            ? const Center(
-                                child: Padding(
-                                  padding: EdgeInsets.all(16.0),
-                                  child: CircularProgressIndicator(),
-                                ),
-                              )
-                            : _error != null
-                                ? Center(
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(16.0),
-                                      child: Text(
-                                        _error!,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w600,
-                                          color: Colors.redAccent,
-                                        ),
-                                      ),
-                                    ),
-                                  )
-                                : _results.isEmpty
-                                    ? const Center(
-                                        child: Padding(
-                                          padding: EdgeInsets.all(24),
-                                          child: Text(
-                                            'Sin coincidencias',
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.w600,
-                                              color: Colors.black54,
-                                            ),
-                                          ),
-                                        ),
-                                      )
-                                    : ListView.separated(
-                                        shrinkWrap: true,
-                                        itemCount: _results.length,
-                                        separatorBuilder: (_, __) =>
-                                            const Divider(height: 1),
-                                        itemBuilder: (context, index) {
-                                          final user = _results[index];
-                                          final avatar =
-                                              user['avatar_url'] as String? ?? '';
-                                          final userId = user['id'] as String?;
-                                          return ListTile(
-                                            leading: CircleAvatar(
-                                              backgroundImage: avatar.isNotEmpty
-                                                  ? NetworkImage(avatar)
-                                                  : const NetworkImage(
-                                                      'https://placehold.co/60x60'),
-                                            ),
-                                            title: Text(
-                                              user['username'] ?? 'usuario',
-                                            ),
-                                            subtitle: Text(
-                                              user['city'] ?? 'Ciudad pendiente',
-                                            ),
-                                            onTap: userId == null
-                                                ? null
-                                                : () {
-                                                    Navigator.push(
-                                                      context,
-                                                      MaterialPageRoute(
-                                                        builder: (_) =>
-                                                            ProfileScreen(
-                                                          profileId: userId,
-                                                          isOwner: false,
-                                                        ),
-                                                      ),
-                                                    );
-                                                  },
-                                          );
-                                        },
-                                      ),
-                      ),
-                    ),
-                  ),
-                ),
-        ),
-      ],
-    );
-  }
-
+  // Autor: Wilbert López Veras
+  // Fecha de creación: 26 de Noviembre de 2025
+  // Descripción: Parsea un valor dinámico a double, retornando null si no
   double? _parseDouble(dynamic value) {
     if (value == null) return null;
     return double.tryParse(value.toString());
   }
 
+  // Autor: Wilbert López Veras
+  // Fecha de creación: 26 de Noviembre de 2025
+  // Descripción: Genera un pequeño offset aleatorio para las coordenadas dadas.
   LatLng randomOffset(LatLng base) {
     final rand = Random();
     const double maxOffset = 0.001;
@@ -607,14 +486,29 @@ class _SearchScreenState extends State<SearchScreen> {
                           defaultCenter: _defaultCenter,
                           iberianBounds: _iberianBounds,
                           onMapReady: _onMapReady,
-                          overlayWidget: _buildMapOverlay(),
+                          overlayWidget: MapStatusOverlay(
+                            statusMessage: _mapStatusMessage,
+                            postalLabel: _postalLabel,
+                            cityLabel: _cityLabel,
+                            showError: _mapError,
+                            loadingMarkers: _loadingMarkers,
+                          ),
                         ),
                       ),
                     ),
                     const SizedBox(height: 12),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: _buildLocationControls(),
+                      child: SearchLocationControls(
+                        postalController: _postalFilterController,
+                        cityController: _cityFilterController,
+                        updatingLocation: _updatingLocation,
+                        onApplyFilters: _updatingLocation
+                            ? null
+                            : () {
+                                _applyLocationFilters();
+                              },
+                      ),
                     ),
                   ],
                 ),
@@ -622,7 +516,15 @@ class _SearchScreenState extends State<SearchScreen> {
                   left: 16,
                   right: 16,
                   top: 16,
-                  child: _buildSearchOverlay(),
+                  child: SearchResultsOverlay(
+                    controller: _controller,
+                    query: _query,
+                    loading: _loading,
+                    error: _error,
+                    results: _results,
+                    onQueryChanged: _onQueryChanged,
+                    onProfileTap: _openProfile,
+                  ),
                 ),
               ],
             ),
@@ -632,79 +534,16 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  Widget _buildLocationControls() {
-    return Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-    child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Ubicación de búsqueda',
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 16,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _postalFilterController,
-                    decoration: InputDecoration(
-                      labelText: 'Código postal',
-                      prefixIcon: const Icon(Icons.local_post_office),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: TextField(
-                    controller: _cityFilterController,
-                    decoration: InputDecoration(
-                      labelText: 'Ciudad / Localidad',
-                      prefixIcon: const Icon(Icons.location_city),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Align(
-              alignment: Alignment.centerRight,
-              child: ElevatedButton(
-                onPressed: _updatingLocation ? null : _applyLocationFilters,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 12,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: _updatingLocation
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Text('Actualizar búsqueda'),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  /// Autor: Wilbert López Veras
+  /// Fecha de creación: 26 de Noviembre de 2025
+  /// Descripción: Obtiene la etiqueta de código postal actual.
+  String get _postalLabel =>
+      _currentPostal == null || _currentPostal!.isEmpty ? 'Sin CP' : _currentPostal!;
+
+  /// Autor: Wilbert López Veras
+  /// Fecha de creación: 26 de Noviembre de 2025
+  /// Descripción: Obtiene la etiqueta de ciudad actual.
+  String get _cityLabel =>
+      _currentCity == null || _currentCity!.isEmpty ? 'Sin ciudad' : _currentCity!;
 
 }
