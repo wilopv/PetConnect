@@ -34,4 +34,4 @@ fastapi[all]
 supabase
 python-jose[cryptography]
 python-dotenv
-google-generative-ai==0.8.5
+google-generativeai==0.8.5
