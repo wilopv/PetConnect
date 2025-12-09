@@ -2,7 +2,8 @@
 /// Fecha de creación: 8 de Diciembre de 2025
 /// Descripción:
 /// Pantalla para ver publicaciones individuales, sus detalles y comentarios.
-
+ 
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pet_connect_app/lib/services/posts_service.dart';
@@ -61,7 +62,7 @@ class _ViewPostScreenState extends State<ViewPostScreen> {
       setState(() => _post = post);
     } catch (e) {
       if (!mounted) return;
-      setState(() => _error = e.toString());
+      setState(() => _error = _formatError(e));
     } finally {
       if (mounted) {
         setState(() => _loading = false);
@@ -76,7 +77,7 @@ class _ViewPostScreenState extends State<ViewPostScreen> {
       setState(() => _comments = comments);
     } catch (e) {
       if (!mounted) return;
-      setState(() => _error = e.toString());
+      setState(() => _error = _formatError(e));
     }
   }
 
@@ -100,7 +101,9 @@ class _ViewPostScreenState extends State<ViewPostScreen> {
       });
     } catch (e) {
       if (!mounted) return;
-      setState(() => _error = e.toString());
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_formatError(e))),
+      );
     } finally {
       if (mounted) {
         setState(() => _sendingComment = false);
@@ -120,7 +123,7 @@ class _ViewPostScreenState extends State<ViewPostScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
+        SnackBar(content: Text(_formatError(e))),
       );
     } finally {
       if (mounted) {
@@ -142,7 +145,7 @@ class _ViewPostScreenState extends State<ViewPostScreen> {
       if (!mounted) return;
       setState(() => _deletingComments.remove(commentId));
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
+        SnackBar(content: Text(_formatError(e))),
       );
     }
   }
@@ -319,7 +322,7 @@ class _ViewPostScreenState extends State<ViewPostScreen> {
                               } catch (e) {
                                 if (mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text(e.toString())),
+                                    SnackBar(content: Text(_formatError(e))),
                                   );
                                 }
                               } finally {
@@ -421,5 +424,19 @@ class _ViewPostScreenState extends State<ViewPostScreen> {
         ),
       ),
     );
+  }
+
+  String _formatError(Object error) {
+    final raw = error.toString().trim();
+    try {
+      final Map<String, dynamic> data = jsonDecode(raw);
+      final detail = data['detail']?.toString();
+      if (detail != null && detail.isNotEmpty) {
+        return detail;
+      }
+    } catch (_) {
+      // No era JSON, continuamos
+    }
+    return raw.replaceFirst('Exception: ', '');
   }
 }

@@ -70,13 +70,27 @@ class _NewPostScreenState extends State<NewPostScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
+        SnackBar(content: Text(_formatError(e))),
       );
     } finally {
       if (mounted) {
         setState(() => _isSubmitting = false);
       }
     }
+  }
+
+  String _formatError(Object error) {
+    final raw = error.toString().trim();
+    try {
+      final Map<String, dynamic> data = jsonDecode(raw);
+      final detail = data['detail']?.toString();
+      if (detail != null && detail.isNotEmpty) {
+        return detail;
+      }
+    } catch (_) {
+      // No era un JSON, seguimos
+    }
+    return raw.replaceFirst('Exception: ', '');
   }
 
   String _mimeFromPath(String path) {

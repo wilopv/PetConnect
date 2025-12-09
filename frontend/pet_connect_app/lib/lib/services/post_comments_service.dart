@@ -45,7 +45,20 @@ class PostCommentsService {
     );
 
     if (response.statusCode != 200) {
-      throw Exception('No se pudo agregar el comentario');
+      try {
+        final Map<String, dynamic> payload =
+            json.decode(response.body) as Map<String, dynamic>;
+        final detail = payload['detail']?.toString();
+        if (detail != null && detail.isNotEmpty) {
+          throw detail;
+        }
+      } catch (_) {
+        final plain = response.body.trim();
+        if (plain.isNotEmpty) {
+          throw plain;
+        }
+      }
+      throw 'No se pudo agregar el comentario';
     }
 
     return json.decode(response.body) as Map<String, dynamic>;

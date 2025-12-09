@@ -122,6 +122,16 @@ class ReportRequest(BaseModel):
     reason: str
 
 
+class ModerationRequest(BaseModel):
+    """
+    Autor: Wilbert Lopez Veras
+    Fecha: 09-12-2025
+    Descripcion: Solicitud para moderar un texto mediante IA.
+    """
+
+    text: str
+
+
 # Esquemas para conversaciones y mensajes
 class ConversationResponse(BaseModel):
     """

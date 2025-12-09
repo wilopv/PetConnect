@@ -12,6 +12,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from app.dependencies import get_current_user
 from app.database import get_supabase_client, get_service_client
 from app.models import PostBase, PostCreate, PostResponse, PostCommentCreate
+from .moderation import moderate_text_with_gemini
 
 USER_CONTENT_BUCKET = os.environ.get("SUPABASE_USER_BUCKET", "user-content")
 POSTS_FOLDER = os.environ.get("SUPABASE_POSTS_FOLDER", "posts")
@@ -28,6 +29,21 @@ def create_post(payload: PostCreate, current_user: dict = Depends(get_current_us
     """
     if not payload.image_base64:
         raise HTTPException(status_code=400, detail="La imagen es requerida.")
+
+    auto_report_reason = None
+    if payload.description:
+        try:
+            moderation = moderate_text_with_gemini(payload.description)
+            if moderation["decision"] == "bloquear":
+                raise HTTPException(status_code=400, detail=moderation["reason"])
+        except HTTPException as exc:
+            if _is_rate_limit_error(exc):
+                auto_report_reason = (
+                    "La moderación automática no pudo analizar la descripción "
+                    "por límite de uso. Requiere revisión manual."
+                )
+            else:
+                raise
 
     service = get_service_client()
     try:
@@ -68,7 +84,12 @@ def create_post(payload: PostCreate, current_user: dict = Depends(get_current_us
         .execute()
     )
 
-    return post_result.data
+    created_post = post_result.data
+
+    if auto_report_reason:
+        _report_post_for_manual_review(service, created_post["id"], current_user["id"], auto_report_reason)
+
+    return created_post
 
 
 @router.get("/user/{user_id}", response_model=list[PostResponse])
@@ -188,6 +209,20 @@ def get_post(post_id: str, current_user: dict = Depends(get_current_user)):
 
 @router.post("/{post_id}/comments")
 def add_comment(post_id: str, payload: PostCommentCreate, current_user: dict = Depends(get_current_user)):
+    auto_report_reason = None
+    if payload.content:
+        try:
+            moderation = moderate_text_with_gemini(payload.content)
+            if moderation["decision"] == "bloquear":
+                raise HTTPException(status_code=400, detail=moderation["reason"])
+        except HTTPException as exc:
+            if _is_rate_limit_error(exc):
+                auto_report_reason = (
+                    "La moderación automática no pudo revisar este comentario "
+                    "por límite de uso. Revisión manual necesaria."
+                )
+            else:
+                raise
     service = get_service_client()
     try:
         insert_result = (
@@ -210,10 +245,13 @@ def add_comment(post_id: str, payload: PostCommentCreate, current_user: dict = D
             .single()
             .execute()
         )
+        comment_data = result.data
+        if auto_report_reason:
+            _report_comment_for_manual_review(service, comment_id, current_user["id"], auto_report_reason)
     except Exception as exc:
         print(f"No se pudo agregar el comentario: {exc}")
         raise HTTPException(status_code=400, detail="No se pudo agregar el comentario")
-    return result.data
+    return comment_data
 
 
 @router.get("/{post_id}/comments")
@@ -350,3 +388,37 @@ def _delete_post_image(service_client, image_url: str | None):
         service_client.storage.from_(USER_CONTENT_BUCKET).remove([relative])
     except Exception as exc:
         print(f"No se pudo eliminar la imagen del post: {exc}")
+
+
+def _is_rate_limit_error(exc: HTTPException) -> bool:
+    detail = str(exc.detail).lower() if isinstance(exc.detail, str) else ""
+    return (
+        exc.status_code == status.HTTP_502_BAD_GATEWAY
+        and any(keyword in detail for keyword in ("rate", "429", "quota"))
+    )
+
+
+def _report_post_for_manual_review(service_client, post_id: str, user_id: str, reason: str):
+    try:
+        service_client.table("post_reports").insert(
+            {
+                "post_id": post_id,
+                "reporter_id": user_id,
+                "reason": reason,
+            }
+        ).execute()
+    except Exception as exc:
+        print(f"No se pudo generar el reporte automático del post {post_id}: {exc}")
+
+
+def _report_comment_for_manual_review(service_client, comment_id: str, user_id: str, reason: str):
+    try:
+        service_client.table("comment_reports").insert(
+            {
+                "comment_id": comment_id,
+                "reporter_id": user_id,
+                "reason": reason,
+            }
+        ).execute()
+    except Exception as exc:
+        print(f"No se pudo generar el reporte automático del comentario {comment_id}: {exc}")
