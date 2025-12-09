@@ -9,6 +9,7 @@ import 'package:pet_connect_app/lib/services/posts_service.dart';
 import 'package:pet_connect_app/lib/services/likes_service.dart';
 import 'package:pet_connect_app/lib/services/post_comments_service.dart';
 import 'package:pet_connect_app/lib/services/auth_service.dart';
+import 'package:pet_connect_app/widgets/report_sheet.dart';
 
 class ViewPostScreen extends StatefulWidget {
   final String postId;
@@ -221,6 +222,12 @@ class _ViewPostScreenState extends State<ViewPostScreen> {
       appBar: AppBar(
         title: const Text('Publicación'),
         actions: [
+          if (!widget.isOwner)
+            IconButton(
+              tooltip: 'Reportar publicación',
+              icon: const Icon(Icons.flag_outlined, color: Colors.redAccent),
+              onPressed: () => showReportPostSheet(context, widget.postId),
+            ),
           if (widget.isOwner)
             IconButton(
               icon: _deleting
@@ -369,9 +376,15 @@ class _ViewPostScreenState extends State<ViewPostScreen> {
                                       : const Icon(Icons.delete_outline),
                                   onPressed: isDeleting
                                       ? null
-                                      : () => _confirmDeleteComment(commentId),
+                                      : () => _confirmDeleteComment(commentId!),
                                 )
-                              : null,
+                              : IconButton(
+                                  tooltip: 'Reportar comentario',
+                                  icon: const Icon(Icons.flag_outlined, color: Colors.redAccent),
+                                  onPressed: commentId == null
+                                      ? null
+                                      : () => showReportCommentSheet(context, commentId),
+                                ),
                         );
                       },
                     ),

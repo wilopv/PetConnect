@@ -112,6 +112,16 @@ class PostCommentCreate(BaseModel):
     content: str
 
 
+class ReportRequest(BaseModel):
+    """
+    Autor: Wilbert Lopez Veras
+    Fecha: 09-12-2025
+    Descripcion: Modelo para enviar reportes de posts o comentarios.
+    """
+
+    reason: str
+
+
 # Esquemas para conversaciones y mensajes
 class ConversationResponse(BaseModel):
     """
