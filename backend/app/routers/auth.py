@@ -13,6 +13,7 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 
 from ..database import get_supabase_client, get_service_client
+from ..geocode import geocode_address
 from ..models import LoginRequest, SignUpRequest, TokenResponse, UserResponse
 from supabase_auth.errors import AuthApiError
 
@@ -95,6 +96,8 @@ def signup(payload: SignUpRequest):
     if user is None:
         raise HTTPException(status_code=400, detail="No se pudo crear la cuenta.")
 
+    latitude, longitude = geocode_address(payload.city, payload.postal_code)
+
     try:
         service.table("profiles").insert({
             "id": user.id,
@@ -102,6 +105,8 @@ def signup(payload: SignUpRequest):
             "username": payload.username,
             "postal_code": payload.postal_code,
             "city": payload.city,
+            "latitude": latitude,
+            "longitude": longitude,
             "pet_name": payload.pet_name,
             "pet_type": payload.pet_type,
             "pet_gender": payload.pet_gender,

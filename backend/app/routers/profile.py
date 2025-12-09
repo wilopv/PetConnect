@@ -2,11 +2,13 @@ import base64
 import binascii
 import os
 import time
+from math import atan2, cos, radians, sin, sqrt
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from app.dependencies import get_current_user
 from app.models import Profile, ProfileUpdate
 from app.database import get_supabase_client, get_service_client
+from app.geocode import geocode_address
 from postgrest.exceptions import APIError
 
 router = APIRouter(prefix="/profile", tags=["Profile"])
@@ -14,6 +16,7 @@ AVATAR_BUCKET = os.environ.get("SUPABASE_AVATAR_BUCKET")
 AVATAR_FOLDER = os.environ.get("SUPABASE_AVATAR_FOLDER")
 USER_CONTENT_BUCKET = os.environ.get("SUPABASE_USER_BUCKET", "user-content")
 USER_CONTENT_ROOT = os.environ.get("SUPABASE_USER_FOLDER", "")
+EARTH_RADIUS_KM = 6371.0
 
 
 @router.get("/me", response_model=Profile)
@@ -61,14 +64,25 @@ def update_my_profile(payload: ProfileUpdate, user = Depends(get_current_user)):
     client = get_supabase_client()
     service = get_service_client()
 
-    payload_dict = payload.dict()
-    avatar_base64 = payload_dict.get("avatar_base64")
-    update_data = {k: v for k, v in payload_dict.items() if k != "avatar_base64" and v is not None}
+    payload_dict = payload.dict(exclude_unset=True)
+    avatar_base64 = payload_dict.pop("avatar_base64", None)
+    update_data = {k: v for k, v in payload_dict.items() if v is not None}
     if not update_data and not avatar_base64:
         raise HTTPException(400, "No hay campos para actualizar")
 
     # ID del usuario (ya viene como string válido)
     user_id = user["id"]
+
+    profile_result = (
+        client.table("profiles")
+        .select("city, postal_code")
+        .eq("id", user_id)
+        .single()
+        .execute()
+    )
+    current_profile = profile_result.data
+    if not current_profile:
+        raise HTTPException(404, "Perfil no encontrado")
 
     if avatar_base64:
         try:
@@ -82,8 +96,18 @@ def update_my_profile(payload: ProfileUpdate, user = Depends(get_current_user)):
                 detail="No se pudo actualizar la imagen de perfil",
             )
 
+    should_update_coords = any(
+        field in update_data for field in ("city", "postal_code")
+    )
+    if should_update_coords:
+        target_city = update_data.get("city", current_profile.get("city"))
+        target_postal = update_data.get("postal_code", current_profile.get("postal_code"))
+        if target_city or target_postal:
+            latitude, longitude = geocode_address(target_city, target_postal)
+            update_data["latitude"] = latitude
+            update_data["longitude"] = longitude
+
     try:
-        # Realizar el UPDATE y pedir que devuelva el registro actualizado
         update_result = (
             client.table("profiles")
             .update(update_data, returning="representation")
@@ -91,14 +115,13 @@ def update_my_profile(payload: ProfileUpdate, user = Depends(get_current_user)):
             .execute()
         )
     except APIError as e:
-        if e.code == "23505":  # Violacion de unicidad (usuario unico)
+        if e.code == "23505":
             raise HTTPException(
                 status_code=400,
                 detail="El nombre de usuario ya está en uso"
             )
         raise
 
-    # Supabase devolverá una lista con 1 elemento si UPDATE tuvo éxito
     if not update_result.data:
         raise HTTPException(404, "Perfil no encontrado")
 
@@ -117,13 +140,86 @@ def search_profiles(query: str, limit: int = 20):
 
     result = (
         client.table("profiles")
-        .select("id, username, city, avatar_url, pet_name")
+        .select("id, username, city, postal_code, avatar_url, pet_name, latitude, longitude")
         .or_(f"username.ilike.{normalized_query},pet_name.ilike.{normalized_query}")
         .limit(limit)
         .execute()
     )
 
     return result.data or []
+
+
+@router.get("/nearby")
+def get_nearby_profiles(
+    lat: float | None = None,
+    lng: float | None = None,
+    radius_km: float = 25,
+    limit: int = 50,
+    user = Depends(get_current_user),
+):
+    """
+    Autor: Wilbert Lopez Veras
+    Fecha: 09-12-2025
+    Descripcion: Obtiene perfiles cercanos dentro de un radio en kilometros.
+    """
+    client = get_supabase_client()
+    result = (
+        client.table("profiles")
+        .select(
+            "id, username, pet_name, city, postal_code, avatar_url, latitude, longitude"
+        )
+        .execute()
+    )
+
+    if lat is None or lng is None:
+        raise HTTPException(
+            status_code=400, detail="Se requieren coordenadas para la búsqueda"
+        )
+    lat = float(lat)
+    lng = float(lng)
+    profiles = result.data or []
+    filtered = []
+    for profile in profiles:
+        if profile.get("id") == user["id"]:
+            continue
+        target_lat = profile.get("latitude")
+        target_lng = profile.get("longitude")
+        if target_lat is None or target_lng is None:
+            continue
+        distance = _haversine_distance(lat, lng, float(target_lat), float(target_lng))
+        if distance <= radius_km:
+            profile["distance_km"] = distance
+            filtered.append(profile)
+
+    filtered.sort(key=lambda item: item.get("distance_km", radius_km))
+    return filtered[:limit]
+
+
+@router.get("/geocode")
+def resolve_location(
+    postal_code: str | None = None,
+    city: str | None = None,
+    user = Depends(get_current_user),
+):
+    """
+    Autor: Wilbert Lopez Veras
+    Fecha: 09-12-2025
+    Descripcion: Convierte ciudad/codigo postal en coordenadas.
+    """
+
+    if not postal_code and not city:
+        raise HTTPException(
+            status_code=400,
+            detail="Debe proporcionar código postal, ciudad o ambos.",
+        )
+
+    latitude, longitude = geocode_address(city, postal_code)
+    if latitude is None or longitude is None:
+        raise HTTPException(
+            status_code=404, detail="No se pudo localizar esa dirección."
+        )
+
+    return {"latitude": latitude, "longitude": longitude}
 
 
 @router.get("/{id}", response_model=Profile)
@@ -157,6 +253,24 @@ def get_profile(id: str):
     data["posts"] = posts.data or []
 
     return data
+
+
+def _haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    """
+    Autor: Wilbert Lopez Veras
+    Fecha: 09-12-2025
+    Descripcion: Calcula la distancia en KM entre dos puntos usando Haversine.
+    """
+
+    lat1_rad, lon1_rad = radians(lat1), radians(lon1)
+    lat2_rad, lon2_rad = radians(lat2), radians(lon2)
+
+    dlat = lat2_rad - lat1_rad
+    dlon = lon2_rad - lon1_rad
+
+    a = sin(dlat / 2) ** 2 + cos(lat1_rad) * cos(lat2_rad) * sin(dlon / 2) ** 2
+    c = 2 * atan2(sqrt(a), sqrt(1 - a))
+    return EARTH_RADIUS_KM * c
 
 
 def _upload_avatar(service_client, user_id: str, avatar_base64: str) -> str:

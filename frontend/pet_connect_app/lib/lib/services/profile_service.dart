@@ -79,4 +79,62 @@ class ProfileService {
     final List<dynamic> raw = json.decode(response.body);
     return raw.cast<Map<String, dynamic>>();
   }
+
+  Future<List<Map<String, dynamic>>> getNearbyProfiles({
+    required double latitude,
+    required double longitude,
+    double radiusKm = 25,
+    int limit = 50,
+  }) async {
+    final uri = Uri.parse('$baseUrl/profile/nearby').replace(
+      queryParameters: {
+        'lat': latitude.toString(),
+        'lng': longitude.toString(),
+        'radius_km': radiusKm.toString(),
+        'limit': limit.toString(),
+      },
+    );
+
+    final response = await http.get(uri, headers: _headers);
+    if (response.statusCode != 200) {
+      throw Exception('Error obteniendo perfiles cercanos');
+    }
+
+    final List<dynamic> raw = json.decode(response.body);
+    return raw.cast<Map<String, dynamic>>();
+  }
+
+  Future<Map<String, double>> geocodeLocation({
+    String? postalCode,
+    String? city,
+  }) async {
+    final params = <String, String>{};
+    if (postalCode != null && postalCode.trim().isNotEmpty) {
+      params['postal_code'] = postalCode.trim();
+    }
+    if (city != null && city.trim().isNotEmpty) {
+      params['city'] = city.trim();
+    }
+    if (params.isEmpty) {
+      throw Exception('Debe proporcionar código postal o ciudad');
+    }
+
+    final uri =
+        Uri.parse('$baseUrl/profile/geocode').replace(queryParameters: params);
+    final response = await http.get(uri, headers: _headers);
+    if (response.statusCode != 200) {
+      try {
+        final body = json.decode(response.body);
+        throw Exception(body['detail'] ?? 'No se pudieron obtener coordenadas');
+      } catch (_) {
+        throw Exception('No se pudieron obtener coordenadas');
+      }
+    }
+
+    final data = json.decode(response.body) as Map<String, dynamic>;
+    return {
+      'latitude': (data['latitude'] as num).toDouble(),
+      'longitude': (data['longitude'] as num).toDouble(),
+    };
+  }
 }

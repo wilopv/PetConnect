@@ -59,6 +59,8 @@ class Profile(BaseModel):
     username: str
     postal_code: Optional[str]
     city: Optional[str]
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
     pet_name: Optional[str]
     pet_type: Optional[str]
     pet_gender: Optional[str]
