@@ -22,6 +22,9 @@ class PostsService {
     };
   }
 
+  /// Autor: Wilbert López Veras
+  /// Fecha: 06-12-2025
+  /// Descripción: Obtiene todas las publicaciones asociadas a un usuario.
   static Future<List<Map<String, dynamic>>> getUserPosts(String userId) async {
     final headers = await _buildHeaders();
     final response = await http.get(
@@ -37,6 +40,9 @@ class PostsService {
     return data.cast<Map<String, dynamic>>();
   }
 
+  /// Autor: Wilbert López Veras
+  /// Fecha: 06-12-2025
+  /// Descripción: Crea una publicación subiendo la imagen codificada y enviando la descripción.
   static Future<Map<String, dynamic>> createPost(
       String description, String imageBase64) async {
     final headers = await _buildHeaders();
@@ -71,6 +77,9 @@ class PostsService {
     return json.decode(response.body) as Map<String, dynamic>;
   }
 
+  /// Autor: Wilbert López Veras
+  /// Fecha: 06-12-2025
+  /// Descripción: Elimina una publicación propia usando su ID.
   static Future<void> deletePost(String id) async {
     final headers = await _buildHeaders();
     final response = await http.delete(
@@ -83,6 +92,9 @@ class PostsService {
     }
   }
 
+  /// Autor: Wilbert López Veras
+  /// Fecha: 06-12-2025
+  /// Descripción: Recupera la información detallada de una publicación concreta.
   static Future<Map<String, dynamic>> getPostById(String id) async {
     final headers = await _buildHeaders();
     final response = await http.get(

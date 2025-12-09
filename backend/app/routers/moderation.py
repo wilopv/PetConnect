@@ -24,6 +24,11 @@ if GEMINI_API_KEY:
 
 
 def _ensure_key():
+    """
+    Autor: Wilbert Lopez Veras
+    Fecha: 09-12-2025
+    Descripcion: Valida que la API key de Gemini exista antes de procesar la solicitud.
+    """
     if not GEMINI_API_KEY:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -33,7 +38,9 @@ def _ensure_key():
 
 def _parse_json_payload(raw_text: str) -> Dict[str, Any]:
     """
-    Intenta extraer un JSON valido del texto devuelto por Gemini.
+    Autor: Wilbert Lopez Veras
+    Fecha: 09-12-2025
+    Descripcion: Extrae el objeto JSON devuelto por Gemini y lanza error si no es válido.
     """
     raw_text = raw_text.strip()
     start = raw_text.find("{")
@@ -46,6 +53,11 @@ def _parse_json_payload(raw_text: str) -> Dict[str, Any]:
 
 
 def _normalize_decision(value: str) -> str:
+    """
+    Autor: Wilbert Lopez Veras
+    Fecha: 09-12-2025
+    Descripcion: Ajusta la respuesta de Gemini a los valores permitidos por el backend.
+    """
     value = (value or "").strip().lower()
     if value in ("permitir", "allow", "allowed"):
         return "permitir"
@@ -94,7 +106,9 @@ def moderate_text(
     payload: ModerationRequest, current_user: dict = Depends(get_current_user)
 ):
     """
-    Endpoint protegido para evaluar un texto con IA y retornar la decision.
+    Autor: Wilbert Lopez Veras
+    Fecha: 09-12-2025
+    Descripcion: Endpoint protegido que evalua el texto mediante IA y retorna la decision.
     """
 
     result = moderate_text_with_gemini(payload.text)

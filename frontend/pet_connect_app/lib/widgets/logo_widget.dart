@@ -1,3 +1,7 @@
+// Autor: Wilbert López Veras
+// Fecha de creación: 15 de Octubre de 2025
+// Descripción: Widget que muestra el logo de la aplicación con un degradado de colores.
+
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';

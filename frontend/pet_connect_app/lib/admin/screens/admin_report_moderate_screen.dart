@@ -1,3 +1,8 @@
+/// Autor: Wilbert López Veras
+/// Fecha de creación: 1 de diciembre de 2025
+/// Descripción:
+/// Pantalla de lista de reportes para el moderador.
+
 import 'package:flutter/material.dart';
 import 'package:pet_connect_app/lib/services/report_service.dart';
 import 'package:pet_connect_app/user/screens/posts/view_post_screen.dart';

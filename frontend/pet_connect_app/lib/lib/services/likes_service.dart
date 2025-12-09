@@ -21,6 +21,9 @@ class LikesService {
   }
 
   static Future<void> likePost(String postId) async {
+    /// Autor: Wilbert López Veras
+    /// Fecha: 06-12-2025
+    /// Descripción: Registra un like de la publicación indicada.
     final headers = await _headers();
     final response = await http.post(
       Uri.parse('${ApiConfig.baseUrl}/posts/$postId/like'),
@@ -33,6 +36,9 @@ class LikesService {
   }
 
   static Future<void> unlikePost(String postId) async {
+    /// Autor: Wilbert López Veras
+    /// Fecha: 06-12-2025
+    /// Descripción: Elimina el like del usuario en la publicación indicada.
     final headers = await _headers();
     final response = await http.delete(
       Uri.parse('${ApiConfig.baseUrl}/posts/$postId/like'),

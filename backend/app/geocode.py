@@ -1,9 +1,8 @@
-"""
-Autor: Wilbert Lopez Veras
-Fecha: 09-12-2025
-Descripcion: Utilidades para obtener coordenadas geograficas a partir
-de una ciudad y codigo postal usando Nominatim (OpenStreetMap).
-"""
+# Autor: Wilbert Lopez Veras
+# Fecha: 09-12-2025
+# Descripcion: Utilidades para obtener coordenadas geograficas a partir
+# de una ciudad y codigo postal usando Nominatim (OpenStreetMap).
+
 
 from __future__ import annotations
 

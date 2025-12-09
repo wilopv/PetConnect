@@ -1,8 +1,6 @@
-"""
-Autor: Wilbert López Veras
-Fecha: 09-12-2025
-Descripción: Utilidades para generar eventos de notificaciones.
-"""
+# Autor: Wilbert López Veras
+# Fecha: 09-12-2025
+# Descripción: Utilidades para generar eventos de notificaciones.
 
 from __future__ import annotations
 
@@ -11,7 +9,9 @@ from typing import Iterable
 
 def notify_followers_about_post(service_client, author_id: str, post_id: str) -> None:
     """
-    Inserta eventos de notificación para todos los seguidores del autor.
+    Autor: Wilbert Lopez Veras
+    Fecha: 09-12-2025
+    Descripcion: Inserta una notificacion para cada seguidor cuando el autor publica.
     """
 
     followers_result = (
@@ -52,7 +52,9 @@ def notify_user_about_message(
     message_id: str,
 ) -> None:
     """
-    Inserta un evento de notificación por mensaje directo.
+    Autor: Wilbert Lopez Veras
+    Fecha: 09-12-2025
+    Descripcion: Genera una notificacion para el receptor de un mensaje privado.
     """
 
     try:

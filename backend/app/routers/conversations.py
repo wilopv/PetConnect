@@ -173,6 +173,11 @@ def send_message(
 
 
 def _ensure_conversation_access(client, conversation_id: str, user_id: str):
+    """
+    Autor: Wilbert Lopez Veras
+    Fecha: 08-12-2025
+    Descripcion: Verifica que el usuario pertenezca a la conversacion para permitir el acceso.
+    """
     conv = (
         client.table("conversations")
         .select("id, user_a, user_b")

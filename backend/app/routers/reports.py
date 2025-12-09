@@ -15,6 +15,11 @@ router = APIRouter(tags=["Reports"])
 
 
 def _ensure_moderator(user: dict):
+    """
+    Autor: Wilbert Lopez Veras
+    Fecha: 09-12-2025
+    Descripcion: Valida que el usuario tenga rol de moderador antes de continuar.
+    """
     if user.get("role") not in ("moderator", "admin"):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

@@ -58,6 +58,11 @@ def verify_access_token(token: str) -> dict:
 
 @router.post("/signup", response_model=TokenResponse)
 def signup(payload: SignUpRequest):
+    """
+    Autor: Wilbert Lopez Veras
+    Fecha: 02-11-2025
+    Descripcion: Registra un usuario en Supabase y crea su perfil local.
+    """
     client = get_supabase_client() # cliente publico
     service = get_service_client()  # cliente admin
 
@@ -141,7 +146,7 @@ def signup(payload: SignUpRequest):
 def _create_user_storage(service_client, user_id: str):
     """
     Autor: Wilbert Lopez Veras
-    Fecha: 25-11-2025
+    Fecha: 02-11-2025
     Descripcion: Crea las carpetas iniciales en el bucket de Supabase para un nuevo usuario.
     """
     if not USER_CONTENT_BUCKET:

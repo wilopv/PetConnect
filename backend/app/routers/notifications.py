@@ -47,8 +47,9 @@ def list_notifications(
 @router.websocket("/ws")
 async def notifications_ws(websocket: WebSocket, token: str | None = None):
     """
-    WebSocket que emite notificaciones en "tiempo real".
-    Requiere el token JWT como query param (?token=...).
+    Autor: Wilbert Lopez Veras
+    Fecha: 09-12-2025
+    Descripcion: Canal WebSocket que emite notificaciones nuevas usando el token JWT del usuario.
     """
 
     auth_token = token or websocket.query_params.get("token")
@@ -110,7 +111,9 @@ async def notifications_ws(websocket: WebSocket, token: str | None = None):
 
 def _attach_author_profiles(service, notifications: List[Dict[str, Any]]):
     """
-    Añade los datos del autor a cada notificación para evitar joins complejos.
+    Autor: Wilbert Lopez Veras
+    Fecha: 09-12-2025
+    Descripcion: Complementa cada notificacion con el perfil del autor para simplificar la respuesta.
     """
 
     author_ids = {

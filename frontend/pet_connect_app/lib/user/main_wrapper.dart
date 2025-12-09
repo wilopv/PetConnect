@@ -1,4 +1,8 @@
-﻿import 'package:flutter/material.dart';
+﻿// Autor: Wilbert López Veras
+// Fecha de creación: 5 de Diciembre de 2025
+// Descripción: Wrapper principal que maneja la navegación entre las pantallas principales de la aplicación.
+
+import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
 import 'screens/home_screen.dart';

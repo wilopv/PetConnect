@@ -1,3 +1,8 @@
+/// Autor: Wilbert López Veras
+/// Fecha de creación: 10 de Diciembre de 2025
+/// Descripción:
+/// Pantalla que muestra las notificaciones y escucha cambios en tiempo real desde el backend.
+
 import 'dart:convert';
 
 import 'package:flutter/material.dart';

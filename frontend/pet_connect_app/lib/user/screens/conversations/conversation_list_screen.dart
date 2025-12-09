@@ -1,3 +1,8 @@
+// Autor: Wilbert López Veras
+// Fecha de creación: 12 de Diciembre de 2025
+// Descripción:
+// Pantalla que muestra la lista de conversaciones del usuario.
+
 import 'package:flutter/material.dart';
 import 'package:pet_connect_app/lib/services/auth_service.dart';
 import 'package:pet_connect_app/lib/services/conversations_service.dart';

@@ -1,3 +1,7 @@
+// Autor: Wilbert López Veras
+// Fecha de creación: 06 de Diciembre de 2025
+// Descripción: Servicio HTTP para administrar los comentarios de las publicaciones.
+
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
@@ -18,6 +22,9 @@ class PostCommentsService {
     };
   }
 
+  /// Autor: Wilbert López Veras
+  /// Fecha: 06-12-2025
+  /// Descripción: Obtiene los comentarios asociados al post indicado.
   static Future<List<Map<String, dynamic>>> getComments(String postId) async {
     final headers = await _headers();
     final response = await http.get(
@@ -33,6 +40,9 @@ class PostCommentsService {
     return data.cast<Map<String, dynamic>>();
   }
 
+  /// Autor: Wilbert López Veras
+  /// Fecha: 06-12-2025
+  /// Descripción: Publica un nuevo comentario enviando su contenido al backend.
   static Future<Map<String, dynamic>> addComment(
       String postId, String content) async {
     final headers = await _headers();
@@ -64,6 +74,9 @@ class PostCommentsService {
     return json.decode(response.body) as Map<String, dynamic>;
   }
 
+  /// Autor: Wilbert López Veras
+  /// Fecha: 06-12-2025
+  /// Descripción: Solicita la eliminación de un comentario propio.
   static Future<void> deleteComment(String postId, String commentId) async {
     final headers = await _headers();
     final response = await http.delete(

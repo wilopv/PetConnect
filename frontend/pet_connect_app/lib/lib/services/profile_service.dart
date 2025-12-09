@@ -17,7 +17,9 @@ class ProfileService {
         'Authorization': 'Bearer $token',
       };
 
-  // GET /profile/me
+  /// Autor: Wilbert López Veras
+  /// Fecha: 18-11-2025
+  /// Descripción: Obtiene el perfil del usuario autenticado desde la API.
   Future<Map<String, dynamic>> getMyProfile() async {
     final response = await http.get(
       Uri.parse('$baseUrl/profile/me'),
@@ -31,7 +33,9 @@ class ProfileService {
     return json.decode(response.body);
   }
 
-  // PUT /profile/me
+  /// Autor: Wilbert López Veras
+  /// Fecha: 18-11-2025
+  /// Descripción: Envía los cambios del perfil propio al backend.
   Future<Map<String, dynamic>> updateMyProfile(Map<String, dynamic> data) async {
     final response = await http.put(
       Uri.parse('$baseUrl/profile/me'),
@@ -51,7 +55,9 @@ class ProfileService {
     return json.decode(response.body);
   }
 
-  // GET /profile/{id} – ver perfil de otros
+  /// Autor: Wilbert López Veras
+  /// Fecha: 18-11-2025
+  /// Descripción: Consulta el perfil de otro usuario usando su ID.
   Future<Map<String, dynamic>> getProfileById(String id) async {
     final response = await http.get(
       Uri.parse('$baseUrl/profile/$id'),
@@ -65,6 +71,9 @@ class ProfileService {
     return json.decode(response.body);
   }
 
+  /// Autor: Wilbert López Veras
+  /// Fecha: 18-11-2025
+  /// Descripción: Permite a moderadores actualizar perfiles de terceros.
   Future<Map<String, dynamic>> updateProfileById(
       String userId, Map<String, dynamic> data) async {
     final response = await http.put(
@@ -89,6 +98,9 @@ class ProfileService {
     return json.decode(response.body);
   }
 
+  /// Autor: Wilbert López Veras
+  /// Fecha: 18-11-2025
+  /// Descripción: Solicita al backend la eliminación de un perfil específico.
   Future<void> deleteProfileById(String userId) async {
     final response = await http.delete(
       Uri.parse('$baseUrl/profile/$userId'),
@@ -108,7 +120,9 @@ class ProfileService {
     }
   }
 
-  // GET /profile/search
+  /// Autor: Wilbert López Veras
+  /// Fecha: 02-12-2025
+  /// Descripción: Busca usuarios por nombre de usuario o mascota.
   Future<List<Map<String, dynamic>>> searchProfiles(String query) async {
     final uri = Uri.parse('$baseUrl/profile/search')
         .replace(queryParameters: {'query': query});
@@ -123,6 +137,9 @@ class ProfileService {
     return raw.cast<Map<String, dynamic>>();
   }
 
+  /// Autor: Wilbert López Veras
+  /// Fecha: 09-12-2025
+  /// Descripción: Recupera perfiles dentro de un radio determinado usando coordenadas.
   Future<List<Map<String, dynamic>>> getNearbyProfiles({
     required double latitude,
     required double longitude,
@@ -147,6 +164,9 @@ class ProfileService {
     return raw.cast<Map<String, dynamic>>();
   }
 
+  /// Autor: Wilbert López Veras
+  /// Fecha: 09-12-2025
+  /// Descripción: Convierte ciudad o código postal en coordenadas usando el backend.
   Future<Map<String, double>> geocodeLocation({
     String? postalCode,
     String? city,

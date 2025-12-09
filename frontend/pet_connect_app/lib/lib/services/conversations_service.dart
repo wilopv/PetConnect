@@ -22,6 +22,9 @@ class ConversationsService {
     };
   }
 
+  /// Autor: Wilbert López Veras
+  /// Fecha: 08-12-2025
+  /// Descripción: Lista todas las conversaciones donde participa el usuario.
   static Future<List<Map<String, dynamic>>> getConversations() async {
     final headers = await _headers();
     final res = await http.get(
@@ -37,6 +40,9 @@ class ConversationsService {
     return data.cast<Map<String, dynamic>>();
   }
 
+  /// Autor: Wilbert López Veras
+  /// Fecha: 08-12-2025
+  /// Descripción: Crea una conversación entre el usuario y el objetivo indicado.
   static Future<Map<String, dynamic>> createConversation(
       String targetUserId) async {
     final headers = await _headers();
@@ -55,6 +61,9 @@ class ConversationsService {
     return jsonDecode(res.body) as Map<String, dynamic>;
   }
 
+  /// Autor: Wilbert López Veras
+  /// Fecha: 08-12-2025
+  /// Descripción: Obtiene los mensajes ordenados por fecha dentro de una conversación.
   static Future<List<Map<String, dynamic>>> getMessages(
       String conversationId) async {
     final headers = await _headers();
@@ -71,6 +80,9 @@ class ConversationsService {
     return data.cast<Map<String, dynamic>>();
   }
 
+  /// Autor: Wilbert López Veras
+  /// Fecha: 08-12-2025
+  /// Descripción: Envía un nuevo mensaje al backend y devuelve la respuesta generada.
   static Future<Map<String, dynamic>> sendMessage(
       String conversationId, String content) async {
     final headers = await _headers();

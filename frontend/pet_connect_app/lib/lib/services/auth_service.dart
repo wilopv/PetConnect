@@ -14,7 +14,9 @@ class AuthService {
 
   final _storage = const FlutterSecureStorage();
 
-  // Funcion de login
+  /// Autor: Wilbert López Veras
+  /// Fecha: 02-11-2025
+  /// Descripción: Realiza la petición de inicio de sesión y guarda token/rol/usuario.
   Future<String?> login(String email, String password) async {
     final url = Uri.parse('${ApiConfig.baseUrl}/auth/login');
 
@@ -52,7 +54,9 @@ class AuthService {
     }
   }
 
-  // Funcion de registro
+  /// Autor: Wilbert López Veras
+  /// Fecha: 02-11-2025
+  /// Descripción: Invoca el endpoint de registro enviando todos los campos del formulario.
   Future<String?> signup(
     String email,
     String password,
@@ -106,11 +110,20 @@ class AuthService {
     }
   }
 
+  /// Autor: Wilbert López Veras
+  /// Fecha: 02-11-2025
+  /// Descripción: Elimina el token almacenado para cerrar sesión localmente.
   Future<void> logout() async {
     await _storage.delete(key: 'access_token');
   }
 
+  /// Autor: Wilbert López Veras
+  /// Fecha: 02-11-2025
+  /// Descripción: Retorna el token JWT guardado en el almacenamiento seguro.
   Future<String?> getToken() => _storage.read(key: 'access_token');
 
+  /// Autor: Wilbert López Veras
+  /// Fecha: 02-11-2025
+  /// Descripción: Recupera el identificador del usuario autenticado guardado localmente.
   Future<String?> getUserId() => _storage.read(key: 'user_id');
 }

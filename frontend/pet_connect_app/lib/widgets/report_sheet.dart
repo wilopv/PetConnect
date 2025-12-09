@@ -1,3 +1,7 @@
+// Autor: Wilbert López Veras
+// Fecha de creación: 12 de Diciembre de 2025
+// Descripción: Hoja modal para reportar publicaciones o comentarios.
+
 import 'package:flutter/material.dart';
 import 'package:pet_connect_app/lib/services/report_service.dart';
 

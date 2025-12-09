@@ -23,6 +23,9 @@ class FollowService {
   }
 
   static Future<void> followUser(String userId) async {
+    /// Autor: Wilbert López Veras
+    /// Fecha: 09-12-2025
+    /// Descripción: Envía la solicitud para seguir al usuario indicado.
     final headers = await _headers();
     final response = await http.post(
       Uri.parse('${ApiConfig.baseUrl}/profile/$userId/follow'),
@@ -36,6 +39,9 @@ class FollowService {
   }
 
   static Future<void> unfollowUser(String userId) async {
+    /// Autor: Wilbert López Veras
+    /// Fecha: 09-12-2025
+    /// Descripción: Deja de seguir al usuario especificado.
     final headers = await _headers();
     final response = await http.delete(
       Uri.parse('${ApiConfig.baseUrl}/profile/$userId/follow'),
@@ -49,6 +55,9 @@ class FollowService {
   }
 
   static Future<bool> isFollowing(String userId) async {
+    /// Autor: Wilbert López Veras
+    /// Fecha: 09-12-2025
+    /// Descripción: Verifica si el usuario autenticado sigue al perfil dado.
     final headers = await _headers();
     final response = await http.get(
       Uri.parse('${ApiConfig.baseUrl}/profile/$userId/follow/status'),
@@ -65,6 +74,9 @@ class FollowService {
   }
 
   static Future<List<Map<String, dynamic>>> getFollowers(String userId) async {
+    /// Autor: Wilbert López Veras
+    /// Fecha: 09-12-2025
+    /// Descripción: Obtiene la lista de seguidores de un usuario.
     final headers = await _headers();
     final response = await http.get(
       Uri.parse('${ApiConfig.baseUrl}/profile/$userId/followers'),
@@ -80,6 +92,9 @@ class FollowService {
   }
 
   static Future<List<Map<String, dynamic>>> getFollowing(String userId) async {
+    /// Autor: Wilbert López Veras
+    /// Fecha: 09-12-2025
+    /// Descripción: Devuelve los usuarios que el perfil indicado está siguiendo.
     final headers = await _headers();
     final response = await http.get(
       Uri.parse('${ApiConfig.baseUrl}/profile/$userId/following'),

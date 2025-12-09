@@ -1,3 +1,9 @@
+// Autor: Wilbert López Veras
+// Fecha de creación: 20 de Diciembre de 2025
+// Descripción:
+// Pantalla que muestra los detalles de una conversación específica,
+// incluyendo los mensajes y la opción para enviar nuevos mensajes.
+
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:pet_connect_app/lib/services/conversations_service.dart';

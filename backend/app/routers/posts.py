@@ -210,6 +210,11 @@ def get_post(post_id: str, current_user: dict = Depends(get_current_user)):
 
 @router.post("/{post_id}/comments")
 def add_comment(post_id: str, payload: PostCommentCreate, current_user: dict = Depends(get_current_user)):
+    """
+    Autor: Wilbert Lopez Veras
+    Fecha: 06-12-2025
+    Descripcion: Agrega un comentario al post aplicando la moderación automática antes de guardar.
+    """
     auto_report_reason = None
     if payload.content:
         try:
@@ -257,6 +262,11 @@ def add_comment(post_id: str, payload: PostCommentCreate, current_user: dict = D
 
 @router.get("/{post_id}/comments")
 def get_comments(post_id: str, current_user: dict = Depends(get_current_user)):
+    """
+    Autor: Wilbert Lopez Veras
+    Fecha: 06-12-2025
+    Descripcion: Devuelve los comentarios del post con el perfil básico del autor.
+    """
     client = get_supabase_client()
     result = (
         client.table("post_comments")
@@ -334,6 +344,11 @@ def delete_comment_as_moderator(post_id: str, comment_id: str, current_user: dic
 
 
 def _upload_post_image(service_client, user_id: str, image_base64: str) -> str:
+    """
+    Autor: Wilbert Lopez Veras
+    Fecha: 06-12-2025
+    Descripcion: Sube la imagen convertida a base64 y devuelve la URL pública.
+    """
     if not USER_CONTENT_BUCKET:
         raise ValueError("No hay bucket configurado para guardar imágenes.")
 
@@ -377,6 +392,11 @@ def _upload_post_image(service_client, user_id: str, image_base64: str) -> str:
 
 
 def _delete_post_image(service_client, image_url: str | None):
+    """
+    Autor: Wilbert Lopez Veras
+    Fecha: 06-12-2025
+    Descripcion: Elimina el archivo del bucket cuando se borra la publicación.
+    """
     if not image_url or not USER_CONTENT_BUCKET:
         return
 
@@ -392,6 +412,11 @@ def _delete_post_image(service_client, image_url: str | None):
 
 
 def _is_rate_limit_error(exc: HTTPException) -> bool:
+    """
+    Autor: Wilbert Lopez Veras
+    Fecha: 06-12-2025
+    Descripcion: Identifica si el error proviene del límite de peticiones del moderador de texto.
+    """
     detail = str(exc.detail).lower() if isinstance(exc.detail, str) else ""
     return (
         exc.status_code == status.HTTP_502_BAD_GATEWAY
@@ -400,6 +425,11 @@ def _is_rate_limit_error(exc: HTTPException) -> bool:
 
 
 def _report_post_for_manual_review(service_client, post_id: str, user_id: str, reason: str):
+    """
+    Autor: Wilbert Lopez Veras
+    Fecha: 06-12-2025
+    Descripcion: Registra un reporte automático de la publicación para revisión humana.
+    """
     try:
         service_client.table("post_reports").insert(
             {
@@ -413,6 +443,11 @@ def _report_post_for_manual_review(service_client, post_id: str, user_id: str, r
 
 
 def _report_comment_for_manual_review(service_client, comment_id: str, user_id: str, reason: str):
+    """
+    Autor: Wilbert Lopez Veras
+    Fecha: 06-12-2025
+    Descripcion: Genera un reporte automático para que un moderador revise el comentario.
+    """
     try:
         service_client.table("comment_reports").insert(
             {
