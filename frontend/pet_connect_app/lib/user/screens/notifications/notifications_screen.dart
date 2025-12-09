@@ -1,5 +1,5 @@
 /// Autor: Wilbert López Veras
-/// Fecha de creación: 10 de Diciembre de 2025
+/// Fecha de creación: 9 de Diciembre de 2025
 /// Descripción:
 /// Pantalla que muestra las notificaciones y escucha cambios en tiempo real desde el backend.
 
@@ -11,6 +11,7 @@ import 'package:pet_connect_app/lib/config/api_config.dart';
 import 'package:http/http.dart' as http;
 import 'package:pet_connect_app/lib/services/auth_service.dart';
 import 'package:pet_connect_app/user/screens/posts/view_post_screen.dart';
+import 'package:pet_connect_app/user/screens/notifications/notification_tile.dart';
 import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
@@ -34,6 +35,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     _init();
   }
 
+  /// Autor: Wilbert López Veras
+  /// Fecha de creación: 9 de Diciembre de 2025
+  /// Descripción: Inicializa la pantalla cargando usuario, notificaciones y WebSocket.
   Future<void> _init() async {
     final userId = await AuthService.instance.getUserId();
     if (!mounted) return;
@@ -42,6 +46,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     await _connectWebSocket();
   }
 
+  // Autor: Wilbert López Veras
+  // Fecha de creación: 9 de Diciembre de 2025
+  // Descripción:
+  // Carga las notificaciones desde el backend y actualiza el estado.
   Future<void> _loadNotifications({bool showSpinner = false}) async {
     if (showSpinner) {
       setState(() {
@@ -67,6 +75,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
   }
 
+  // Autor: Wilbert López Veras
+  // Fecha de creación: 9 de Diciembre de 2025
+  // Descripción:
+  // Conecta al WebSocket del backend para recibir notificaciones en tiempo real.
+  /// Autor: Wilbert López Veras
+  /// Fecha de creación: 9 de Diciembre de 2025
+  /// Descripción: Abre el canal WebSocket para recibir notificaciones nuevas.
   Future<void> _connectWebSocket() async {
     final userId = _currentUserId;
     final token = await AuthService.instance.getToken();
@@ -114,6 +129,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
   }
 
+  // Autor: Wilbert López Veras
+  // Fecha de creación: 9 de Diciembre de 2025
+  // Descripción:
   Uri _buildWsUri(String token) {
     final base = Uri.parse(ApiConfig.baseUrl);
     final scheme = base.scheme == 'https' ? 'wss' : 'ws';
@@ -126,6 +144,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
   }
 
+  // Autor: Wilbert López Veras
+  // Fecha de creación: 9 de Diciembre de 2025
+  // Descripción:
+  // Solicita las notificaciones al backend.
   Future<List<Map<String, dynamic>>> _fetchNotificationsFromBackend() async {
     final token = await AuthService.instance.getToken();
     if (token == null) {
@@ -147,6 +169,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     _channel?.sink.close();
     super.dispose();
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -182,7 +205,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                               const Divider(height: 1),
                           itemBuilder: (context, index) {
                             final item = _notifications[index];
-                            return _NotificationTile(
+                            return NotificationTile(
                               data: item,
                               onOpen: () => _handleNotificationTap(item),
                               onDelete: _deleteNotification,
@@ -193,6 +216,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
   }
 
+  // Autor: Wilbert López Veras
+  // Fecha de creación: 9 de Diciembre de 2025
+  // Descripción:
+  // Maneja la navegación al tocar una notificación.
   void _handleNotificationTap(Map<String, dynamic> notification) {
     final eventType = (notification['event_type'] ?? '').toString();
     if (eventType == 'post') {
@@ -225,6 +252,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
   }
 
+  // Autor: Wilbert López Veras
+  // Fecha de creación: 9 de Diciembre de 2025
+  // Descripción:
+  // Formatea el autor de la notificación para mostrar en pantalla.
   String _formatAuthor(Map<String, dynamic> author) {
     final petName = (author['pet_name'] ?? '').toString();
     final username = (author['username'] ?? '').toString();
@@ -236,6 +267,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     return 'Usuario';
   }
 
+  // Autor: Wilbert López Veras
+  // Fecha de creación: 9 de Diciembre de 2025
+  // Descripción:
+  // Elimina una notificación específica.
   Future<void> _deleteNotification(Map<String, dynamic> notification) async {
     final id = notification['id']?.toString();
     if (id == null) return;
@@ -260,114 +295,5 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         SnackBar(content: Text('No se pudo eliminar: $e')),
       );
     }
-  }
-}
-
-class _NotificationTile extends StatelessWidget {
-  final Map<String, dynamic> data;
-  final VoidCallback onOpen;
-  final ValueChanged<Map<String, dynamic>> onDelete;
-
-  const _NotificationTile({
-    required this.data,
-    required this.onOpen,
-    required this.onDelete,
-  });
-
-  IconData get _icon {
-    switch (data['event_type']) {
-      case 'message':
-        return Icons.mail_outline;
-      default:
-        return Icons.notifications;
-    }
-  }
-
-  Color get _color {
-    switch (data['event_type']) {
-      case 'message':
-        return Colors.teal;
-      default:
-        return Colors.orange;
-    }
-  }
-
-  String get _timeText {
-    final createdAt = data['created_at']?.toString();
-    if (createdAt == null) return '';
-    try {
-      final date = DateTime.parse(createdAt).toLocal();
-      return DateFormat('dd MMM yyyy, HH:mm').format(date);
-    } catch (_) {
-      return createdAt;
-    }
-  }
-
-  String get _description {
-    final author = data['author'] as Map<String, dynamic>? ?? {};
-    final formattedAuthor = _formatAuthor(author);
-    switch (data['event_type']) {
-      case 'post':
-        return '<strong>$formattedAuthor</strong> ha hecho una nueva publicación.';
-      case 'message':
-        return '<strong>$formattedAuthor</strong> te ha enviado un mensaje.';
-      default:
-        return '<strong>$formattedAuthor</strong> tiene una novedad.';
-    }
-  }
-
-  String _formatAuthor(Map<String, dynamic> author) {
-    final petName = (author['pet_name'] ?? '').toString();
-    final username = (author['username'] ?? '').toString();
-    if (petName.isNotEmpty && username.isNotEmpty) {
-      return '$petName (@$username)';
-    }
-    if (petName.isNotEmpty) return petName;
-    if (username.isNotEmpty) return '@$username';
-    return 'Usuario';
-  }
-
-  List<TextSpan> _buildTextSpans(String text) {
-    final spans = <TextSpan>[];
-    final regExp = RegExp(r'<strong>(.*?)<\/strong>');
-    int start = 0;
-    for (final match in regExp.allMatches(text)) {
-      if (match.start > start) {
-        spans.add(TextSpan(text: text.substring(start, match.start)));
-      }
-      spans.add(
-        TextSpan(
-          text: match.group(1),
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-      );
-      start = match.end;
-    }
-    if (start < text.length) {
-      spans.add(TextSpan(text: text.substring(start)));
-    }
-    return spans;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      onTap: onOpen,
-      leading: Icon(_icon, color: _color, size: 28),
-      title: RichText(
-        text: TextSpan(
-          style: const TextStyle(color: Colors.black87, fontSize: 15),
-          children: _buildTextSpans(_description),
-        ),
-      ),
-      subtitle:
-          Text(_timeText, style: TextStyle(color: Colors.grey[600], fontSize: 12)),
-      trailing: IconButton(
-        icon: const Icon(Icons.delete_outline),
-        color: Colors.grey[600],
-        onPressed: () => onDelete(data),
-      ),
-      isThreeLine: true,
-    );
   }
 }
