@@ -116,6 +116,53 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  Future<void> _openEditProfile() async {
+    if (profile == null) return;
+    final updated = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => EditProfileScreen(
+          profile: Map<String, dynamic>.from(profile!),
+        ),
+      ),
+    );
+    if (updated == true && mounted) {
+      setState(() => loading = true);
+      await loadProfile();
+    }
+  }
+
+  Widget _buildHeaderAction() {
+    if (widget.isOwner) {
+      return IconButton(
+        tooltip: 'Editar perfil',
+        icon: const Icon(Icons.edit, color: Colors.white, size: 22),
+        padding: EdgeInsets.zero,
+        constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+        onPressed: _openEditProfile,
+      );
+    }
+
+    if (_startingConversation) {
+      return const SizedBox(
+        width: 28,
+        height: 28,
+        child: CircularProgressIndicator(
+          strokeWidth: 2,
+          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+        ),
+      );
+    }
+
+    return IconButton(
+      tooltip: 'Enviar mensaje',
+      icon: const Icon(Icons.mail_outline, color: Colors.white, size: 22),
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+      onPressed: () => _startConversation(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (loading) {
@@ -156,7 +203,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       backgroundImage: NetworkImage(
                         profile!['avatar_url'] ??
                             'https://placehold.co/150x150/0ea5e9/white?text=Pet',
-                      ),
+                    ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
@@ -170,6 +217,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
+                    _buildHeaderAction(),
                   ],
                 ),
               ),
@@ -258,76 +306,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                           ],
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      Flexible(
-                        child: widget.isOwner
-                            ? ElevatedButton(
-                                onPressed: () async {
-                                  if (profile == null) return;
-                                  final updated = await Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => EditProfileScreen(
-                                        profile:
-                                            Map<String, dynamic>.from(profile!),
-                                      ),
-                                    ),
-                                  );
-                                  if (updated == true && mounted) {
-                                    setState(() => loading = true);
-                                    await loadProfile();
-                                  }
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.grey[200],
-                                  foregroundColor: Colors.black87,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 10,
-                                  ),
-                                  textStyle: const TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  elevation: 0,
-                                ),
-                                child: const Text('Editar Perfil'),
-                              )
-                            : ElevatedButton.icon(
-                                onPressed: _startingConversation
-                                    ? null
-                                    : () => _startConversation(),
-                                icon: _startingConversation
-                                    ? const SizedBox(
-                                        width: 16,
-                                        height: 16,
-                                        child: CircularProgressIndicator(
-                                            strokeWidth: 2),
-                                      )
-                                    : const Icon(Icons.chat_bubble_outline),
-                                label: const Text('Enviar mensaje'),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor:
-                                      kPrimaryColor.withOpacity(0.1),
-                                  foregroundColor: kPrimaryColor,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 10,
-                                  ),
-                                  textStyle: const TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  elevation: 0,
-                                ),
-                              ),
                       ),
                     ],
                   ),
