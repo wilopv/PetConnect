@@ -1,3 +1,6 @@
+// Autor: Wilbert López Veras
+// Fecha de creación: 19 de Diciembre de 2025
+// Descripción: Pantalla para editar el perfil del usuario.
 import 'dart:convert';
 import 'dart:io';
 
@@ -15,6 +18,7 @@ class EditProfileScreen extends StatefulWidget {
   State<EditProfileScreen> createState() => _EditProfileScreenState();
 }
 
+
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
@@ -22,7 +26,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final _cityController = TextEditingController();
   final _petNameController = TextEditingController();
   final _bioController = TextEditingController();
-
   final picker.ImagePicker _picker = picker.ImagePicker();
 
   String? _selectedPetType;
@@ -48,6 +51,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _initProfile();
   }
 
+
+  // Autor: Wilbert López Veras
+  // Fecha de creación: 19 de Diciembre de 2025
+  // Descripción:
+  // Inicializa el perfil cargando los datos del usuario.
   Future<void> _initProfile() async {
     final token = await AuthService.instance.getToken();
     final currentUserId = await AuthService.instance.getUserId();
@@ -95,6 +103,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
+  // Autor: Wilbert López Veras
+  // Fecha de creación: 19 de Diciembre de 2025
+  // Descripción:
+  // Guarda los cambios realizados en el perfil del usuario.
   Future<void> _saveProfile() async {
     if (_profileService == null) return;
     if (!_formKey.currentState!.validate()) return;
@@ -142,6 +154,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
+
   @override
   void dispose() {
     _usernameController.dispose();
@@ -152,6 +165,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.dispose();
   }
 
+  // Autor: Wilbert López Veras
+  // Fecha de creación: 19 de Diciembre de 2025
+  // Descripción:
+  // Permite al usuario seleccionar una imagen desde la galería o cámara.
   Future<void> _pickImage(picker.ImageSource source) async {
     try {
       final picked = await _picker.pickImage(source: source, imageQuality: 85);
@@ -172,6 +189,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
+  // Autor: Wilbert López Veras
+  // Fecha de creación: 19 de Diciembre de 2025
+  // Descripción:
+  // Muestra un modal para seleccionar la fuente de la imagen (galería o cámara).
   void _showImageSourceSheet() {
     showModalBottomSheet(
       context: context,
@@ -202,6 +223,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
+  // Autor: Wilbert López Veras
+  // Fecha de creación: 19 de Diciembre de 2025
+  // Descripción:
+  // Obtiene el proveedor de imagen para el avatar del usuario.
   ImageProvider? _avatarImageProvider() {
     if (_avatarFile != null) {
       return FileImage(_avatarFile!);
