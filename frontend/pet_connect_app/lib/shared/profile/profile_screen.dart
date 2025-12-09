@@ -9,6 +9,7 @@ import 'package:pet_connect_app/lib/config/api_config.dart';
 import 'package:pet_connect_app/lib/services/auth_service.dart';
 import 'package:pet_connect_app/lib/services/profile_service.dart';
 import 'package:pet_connect_app/lib/services/conversations_service.dart';
+import 'package:pet_connect_app/lib/services/follow_service.dart';
 import './edit_profile_screen.dart';
 import 'package:pet_connect_app/user/screens/posts/view_post_screen.dart';
 
@@ -31,6 +32,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool loading = true;
   String? error;
   bool _startingConversation = false;
+  bool _followLoading = false;
+  bool? _isFollowing;
 
   ProfileService? profileService;
 
@@ -69,10 +72,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final data = widget.isOwner || widget.profileId == null
           ? await profileService!.getMyProfile()
           : await profileService!.getProfileById(widget.profileId!);
+      if (!mounted) return;
       setState(() {
         profile = data;
         loading = false;
       });
+      if (!widget.isOwner) {
+        await _loadFollowStatus();
+      }
     } catch (e) {
       setState(() {
         error = e.toString();
@@ -132,35 +139,124 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  Widget _buildHeaderAction() {
-    if (widget.isOwner) {
-      return IconButton(
-        tooltip: 'Editar perfil',
-        icon: const Icon(Icons.edit, color: Colors.white, size: 22),
-        padding: EdgeInsets.zero,
-        constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-        onPressed: _openEditProfile,
-      );
-    }
+  Widget _buildFollowButton() {
+    final isFollowing = _isFollowing ?? false;
+    final showSpinner = _followLoading || _isFollowing == null;
+    final backgroundColor =
+        isFollowing ? Colors.grey[200] : kPrimaryColor;
+    final foregroundColor =
+        isFollowing ? Colors.black87 : Colors.white;
 
-    if (_startingConversation) {
-      return const SizedBox(
-        width: 28,
-        height: 28,
-        child: CircularProgressIndicator(
-          strokeWidth: 2,
-          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-        ),
-      );
-    }
-
-    return IconButton(
-      tooltip: 'Enviar mensaje',
-      icon: const Icon(Icons.mail_outline, color: Colors.white, size: 22),
-      padding: EdgeInsets.zero,
-      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-      onPressed: () => _startConversation(),
+    return ElevatedButton(
+      onPressed: showSpinner ? null : _toggleFollow,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: backgroundColor,
+        foregroundColor: foregroundColor,
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        elevation: 0,
+      ),
+      child: showSpinner
+          ? const SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : Text(
+              isFollowing ? 'Siguiendo' : 'Seguir',
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+            ),
     );
+  }
+
+  Future<void> _loadFollowStatus() async {
+    final targetId = (widget.profileId ?? profile?['id']) as String?;
+    if (targetId == null) return;
+
+    setState(() {
+      _followLoading = true;
+      _isFollowing ??= false;
+    });
+
+    try {
+      final following = await FollowService.isFollowing(targetId);
+      if (!mounted) return;
+      setState(() => _isFollowing = following);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('No se pudo verificar el seguimiento: $e')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _followLoading = false);
+      }
+    }
+  }
+
+  Future<void> _toggleFollow() async {
+    final targetId = (widget.profileId ?? profile?['id']) as String?;
+    if (targetId == null) return;
+    final currentlyFollowing = _isFollowing ?? false;
+
+    setState(() => _followLoading = true);
+    try {
+      if (currentlyFollowing) {
+        await FollowService.unfollowUser(targetId);
+      } else {
+        await FollowService.followUser(targetId);
+      }
+      if (!mounted) return;
+      setState(() => _isFollowing = !currentlyFollowing);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('No se pudo actualizar el seguimiento: $e')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _followLoading = false);
+      }
+    }
+  }
+
+  Widget _buildActionRow() {
+    if (widget.isOwner) {
+      return Wrap(
+        spacing: 12,
+        runSpacing: 8,
+        children: [
+          _PrimaryActionButton(
+            label: 'Editar perfil',
+            onPressed: _openEditProfile,
+            color: kPrimaryColor,
+          ),
+          _PrimaryActionButton(
+            label: 'Cerrar sesión',
+            onPressed: () => _logout(context),
+            color: Colors.red,
+          ),
+        ],
+      );
+    }
+
+    return Wrap(
+      spacing: 12,
+      runSpacing: 8,
+      children: [
+        _buildFollowButton(),
+        _PrimaryActionButton(
+          label: 'Enviar mensaje',
+          onPressed: _startingConversation ? null : _startConversation,
+          color: Colors.teal,
+          showSpinner: _startingConversation,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHeaderAction() {
+    return const SizedBox.shrink();
   }
 
   @override
@@ -246,33 +342,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ],
               ),
             ),
-            actions: widget.isOwner
-                ? [
-                    Padding(
-                      padding: const EdgeInsets.only(right: 16.0),
-                      child: ElevatedButton(
-                        onPressed: () => _logout(context),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 10,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          elevation: 0,
-                        ),
-                        child: const Text(
-                          "Cerrar sesión",
-                          style:
-                              TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-                        ),
-                      ),
-                    ),
-                  ]
-                : null,
+            actions: const [],
           ),
           SliverToBoxAdapter(
             child: Padding(
@@ -280,6 +350,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16.0),
+                    child: _buildActionRow(),
+                  ),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -398,4 +472,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
 Future<void> _logout(BuildContext context) async {
   await AuthService.instance.logout();
   Navigator.pushNamedAndRemoveUntil(context, '/login', (_) => false);
+}
+
+class _PrimaryActionButton extends StatelessWidget {
+  final String label;
+  final VoidCallback? onPressed;
+  final Color color;
+  final bool showSpinner;
+
+  const _PrimaryActionButton({
+    required this.label,
+    required this.onPressed,
+    required this.color,
+    this.showSpinner = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: showSpinner ? null : onPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color,
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        elevation: 0,
+      ),
+      child: showSpinner
+          ? const SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : Text(
+              label,
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+            ),
+    );
+  }
 }

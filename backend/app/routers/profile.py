@@ -366,6 +366,143 @@ def get_profile(id: str):
     return data
 
 
+@router.post("/{target_id}/follow")
+def follow_user(
+    target_id: str,
+    user=Depends(get_current_user),
+):
+    """
+    Autor: Wilbert Lopez Veras
+    Fecha: 09-12-2025
+    Descripcion: Permite seguir a otro usuario.
+    """
+
+    follower_id = user["id"]
+    if follower_id == target_id:
+        raise HTTPException(status_code=400, detail="No puedes seguirte a ti mismo")
+
+    service = get_service_client()
+    exists = (
+        service.table("profiles")
+        .select("id")
+        .eq("id", target_id)
+        .single()
+        .execute()
+    ).data
+
+    if not exists:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+
+    try:
+        service.table("user_follows").insert(
+            {
+                "follower_id": follower_id,
+                "followed_id": target_id,
+            }
+        ).execute()
+    except APIError as exc:
+        if exc.code == "23505":
+            raise HTTPException(status_code=400, detail="Ya sigues a este usuario")
+        raise
+
+    return {"message": "Ahora sigues a este usuario"}
+
+
+@router.delete("/{target_id}/follow")
+def unfollow_user(
+    target_id: str,
+    user=Depends(get_current_user),
+):
+    """
+    Autor: Wilbert Lopez Veras
+    Fecha: 09-12-2025
+    Descripcion: Deja de seguir a un usuario.
+    """
+
+    follower_id = user["id"]
+    service = get_service_client()
+    result = (
+        service.table("user_follows")
+        .delete()
+        .eq("follower_id", follower_id)
+        .eq("followed_id", target_id)
+        .execute()
+    )
+
+    if not result.data:
+        raise HTTPException(status_code=404, detail="No seguías a este usuario")
+
+    return {"message": "Has dejado de seguir a este usuario"}
+
+
+@router.get("/{target_id}/follow/status")
+def get_follow_status(
+    target_id: str,
+    user=Depends(get_current_user),
+):
+    """
+    Autor: Wilbert Lopez Veras
+    Fecha: 09-12-2025
+    Descripcion: Indica si el usuario autenticado sigue al perfil target.
+    """
+
+    follower_id = user["id"]
+    if follower_id == target_id:
+        return {"following": False}
+
+    service = get_service_client()
+    result = (
+        service.table("user_follows")
+        .select("follower_id")
+        .eq("follower_id", follower_id)
+        .eq("followed_id", target_id)
+        .limit(1)
+        .execute()
+    )
+
+    return {"following": bool(result.data)}
+
+
+@router.get("/{user_id}/following")
+def list_following(user_id: str):
+    """
+    Autor: Wilbert Lopez Veras
+    Fecha: 09-12-2025
+    Descripcion: Lista los usuarios seguidos por user_id.
+    """
+
+    client = get_supabase_client()
+    result = (
+        client.table("user_follows")
+        .select(
+            "followed:profiles(id, username, avatar_url, pet_name, city, postal_code)"
+        )
+        .eq("follower_id", user_id)
+        .execute()
+    )
+    return [item["followed"] for item in result.data or []]
+
+
+@router.get("/{user_id}/followers")
+def list_followers(user_id: str):
+    """
+    Autor: Wilbert Lopez Veras
+    Fecha: 09-12-2025
+    Descripcion: Lista los seguidores de un usuario.
+    """
+
+    client = get_supabase_client()
+    result = (
+        client.table("user_follows")
+        .select(
+            "follower:profiles(id, username, avatar_url, pet_name, city, postal_code)"
+        )
+        .eq("followed_id", user_id)
+        .execute()
+    )
+    return [item["follower"] for item in result.data or []]
+
+
 def _haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     """
     Autor: Wilbert Lopez Veras
