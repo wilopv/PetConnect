@@ -25,11 +25,3 @@ app.include_router(moderation_router)
 app.include_router(notifications_router)
 
 
-@app.get("/users/me")
-def read_current_user(current_user: dict = Depends(get_current_user)):
-    """
-    Autor: Wilbert Lopez Veras
-    Fecha: 02-11-2025
-    Descripcion: Retorna datos basicos del usuario autenticado.
-    """
-    return current_user
