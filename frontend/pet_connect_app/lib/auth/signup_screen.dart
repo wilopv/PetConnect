@@ -26,6 +26,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
   String? _petType;
   String? _petGender;
 
+  // Autor: Wilbert López Veras
+  // Fecha de creación: 29 de Octubre de 2025
+  // Descripción:
+  // Maneja el proceso de creación de cuenta.
   Future<void> _handleSignup() async {
     final username = _usernameController.text.trim();
     final email = _emailController.text.trim();
@@ -164,6 +168,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 }
 
+// Autor: Wilbert López Veras
+// Fecha de creación: 29 de Octubre de 2025
+// Descripción:
+// Botón personalizado para registrarse.
 class _RegisterButton extends StatelessWidget {
   final VoidCallback onPressed;
 

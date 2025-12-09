@@ -21,9 +21,8 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _storage = const FlutterSecureStorage();
-  // email controller with default text for testing
-  final _emailController = TextEditingController(text: 'usuario1@hotmail.com');
-  final _passwordController = TextEditingController(text: '123456');
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
   bool _isLoading = false;
 
   @override
@@ -87,6 +86,10 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  // Autor: Wilbert López Veras
+  // Fecha de creación: 29 de Octubre de 2025
+  // Descripción:
+  // Maneja el proceso de inicio de sesión.
   Future<void> _handleLogin() async {
     setState(() => _isLoading = true);
 
