@@ -1,11 +1,12 @@
 // Autor: Wilbert López Veras
-// Fecha de creación: 12 de Diciembre de 2025
+// Fecha de creación: 8 de Diciembre de 2025
 // Descripción:
 // Pantalla que muestra la lista de conversaciones del usuario.
 
 import 'package:flutter/material.dart';
 import 'package:pet_connect_app/lib/services/auth_service.dart';
 import 'package:pet_connect_app/lib/services/conversations_service.dart';
+import 'package:pet_connect_app/user/screens/conversations/conversation_list_tile.dart';
 
 class ConversationListScreen extends StatefulWidget {
   const ConversationListScreen({super.key});
@@ -33,6 +34,10 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
     await _loadConversations();
   }
 
+  // Autor: Wilbert López Veras
+  // Fecha de creación: 8 de Diciembre de 2025
+  // Descripción:
+  // Carga la lista de conversaciones desde el servidor.
   Future<void> _loadConversations() async {
     setState(() {
       _loading = true;
@@ -52,6 +57,7 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
     }
   }
 
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -117,7 +123,7 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
 
         final displayName = '$petName (@$username)';
 
-        return _ConversationListTile(
+        return ConversationListTile(
           name: displayName,
           message: subtitle,
           avatarUrl: avatarUrl,
@@ -135,31 +141,6 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
           },
         );
       },
-    );
-  }
-}
-
-class _ConversationListTile extends StatelessWidget {
-  final String name;
-  final String message;
-  final String avatarUrl;
-  final VoidCallback onTap;
-
-  const _ConversationListTile({
-    required this.name,
-    required this.message,
-    required this.avatarUrl,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      leading: CircleAvatar(backgroundImage: NetworkImage(avatarUrl)),
-      title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
-      subtitle: Text(message, maxLines: 1, overflow: TextOverflow.ellipsis),
-      trailing: const Icon(Icons.chevron_right),
-      onTap: onTap,
     );
   }
 }

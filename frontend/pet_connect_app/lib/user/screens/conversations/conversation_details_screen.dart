@@ -1,5 +1,5 @@
 // Autor: Wilbert López Veras
-// Fecha de creación: 20 de Diciembre de 2025
+// Fecha de creación: 8 de Diciembre de 2025
 // Descripción:
 // Pantalla que muestra los detalles de una conversación específica,
 // incluyendo los mensajes y la opción para enviar nuevos mensajes.
@@ -8,6 +8,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:pet_connect_app/lib/services/conversations_service.dart';
 import 'package:pet_connect_app/lib/services/auth_service.dart';
+import 'package:pet_connect_app/user/screens/conversations/conversation_bubble.dart';
+import 'package:pet_connect_app/user/screens/conversations/conversation_input.dart';
 
 class ConversationDetailsScreen extends StatefulWidget {
   const ConversationDetailsScreen({super.key});
@@ -40,6 +42,10 @@ class _ConversationDetailsScreenState extends State<ConversationDetailsScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) => _setup());
   }
 
+  // Autor: Wilbert López Veras
+  // Fecha de creación: 8 de Diciembre de 2025
+  // Descripción:
+  // Configura la pantalla obteniendo los argumentos y cargando los mensajes.
   Future<void> _setup() async {
     final args =
         ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
@@ -60,6 +66,9 @@ class _ConversationDetailsScreenState extends State<ConversationDetailsScreen> {
         Timer.periodic(const Duration(seconds: 5), (_) => _loadMessages(showSpinner: false));
   }
 
+  // Autor: Wilbert López Veras
+  // Fecha de creación: 8 de Diciembre de 2025
+  // Descripción:
   Future<void> _loadMessages({bool showSpinner = true}) async {
     if (_conversationId == null || _fetching) return;
     _fetching = true;
@@ -89,6 +98,10 @@ class _ConversationDetailsScreenState extends State<ConversationDetailsScreen> {
     }
   }
 
+  // Autor: Wilbert López Veras
+  // Fecha de creación: 8 de Diciembre de 2025
+  // Descripción:
+  // Maneja el envío de un nuevo mensaje en la conversación.
   Future<void> _sendMessage() async {
     if (_conversationId == null ||
         _controller.text.trim().isEmpty ||
@@ -119,6 +132,10 @@ class _ConversationDetailsScreenState extends State<ConversationDetailsScreen> {
     }
   }
 
+  // Autor: Wilbert López Veras
+  // Fecha de creación: 8 de Diciembre de 2025
+  // Descripción:
+  // Desplaza la vista de mensajes hacia el final para mostrar el mensaje más reciente.
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
@@ -130,6 +147,7 @@ class _ConversationDetailsScreenState extends State<ConversationDetailsScreen> {
       }
     });
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -160,7 +178,7 @@ class _ConversationDetailsScreenState extends State<ConversationDetailsScreen> {
       body: Column(
         children: [
           Expanded(child: _buildMessages()),
-          _ConversationInput(
+          ConversationInput(
             controller: _controller,
             sending: _sending,
             onSend: _sendMessage,
@@ -170,6 +188,10 @@ class _ConversationDetailsScreenState extends State<ConversationDetailsScreen> {
     );
   }
 
+  // Autor: Wilbert López Veras
+  // Fecha de creación: 8 de Diciembre de 2025
+  // Descripción:
+  // Construye el widget que muestra la lista de mensajes en la conversación.
   Widget _buildMessages() {
     if (_loading) {
       return const Center(child: CircularProgressIndicator());
@@ -197,7 +219,7 @@ class _ConversationDetailsScreenState extends State<ConversationDetailsScreen> {
         final isMe = msg['sender_id'] == _currentUserId;
         return Padding(
           padding: const EdgeInsets.only(bottom: 12),
-          child: _ConversationBubble(
+          child: ConversationBubble(
             isMe: isMe,
             message: msg['content'] ?? '',
             time: msg['created_at'] ?? '',
@@ -213,126 +235,5 @@ class _ConversationDetailsScreenState extends State<ConversationDetailsScreen> {
     _scrollController.dispose();
     _pollingTimer?.cancel();
     super.dispose();
-  }
-}
-
-class _ConversationBubble extends StatelessWidget {
-  final bool isMe;
-  final String message;
-  final String time;
-
-  const _ConversationBubble({
-    required this.isMe,
-    required this.message,
-    required this.time,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final color = isMe ? Colors.teal : Colors.grey.shade200;
-    final alignment = isMe ? Alignment.centerRight : Alignment.centerLeft;
-    final textColor = isMe ? Colors.white : Colors.black87;
-    String formatted = time;
-    if (time.isNotEmpty) {
-      try {
-        final parsed = DateTime.parse(time);
-        formatted =
-            '${parsed.day.toString().padLeft(2, '0')}/${parsed.month.toString().padLeft(2, '0')}/${parsed.year} ${parsed.hour.toString().padLeft(2, '0')}:${parsed.minute.toString().padLeft(2, '0')}';
-      } catch (_) {}
-    }
-
-    return Align(
-      alignment: alignment,
-      child: Container(
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        constraints: const BoxConstraints(maxWidth: 280),
-        child: Column(
-          crossAxisAlignment:
-              isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-          children: [
-            Text(
-              message,
-              style: TextStyle(color: textColor, fontSize: 15),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              formatted,
-              style: TextStyle(
-                color: textColor.withOpacity(0.7),
-                fontSize: 11,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ConversationInput extends StatelessWidget {
-  final TextEditingController controller;
-  final VoidCallback onSend;
-  final bool sending;
-
-  const _ConversationInput({
-    required this.controller,
-    required this.onSend,
-    required this.sending,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      top: false,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              offset: const Offset(0, -2),
-              blurRadius: 6,
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: controller,
-                enabled: !sending,
-                decoration: InputDecoration(
-                  hintText: 'Escribe un mensaje...',
-                  filled: true,
-                  fillColor: Colors.grey.shade100,
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(20),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 10),
-            FloatingActionButton.small(
-              onPressed: sending ? null : onSend,
-              child: sending
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.send),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }

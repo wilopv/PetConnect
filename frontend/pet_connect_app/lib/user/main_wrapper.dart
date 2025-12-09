@@ -36,6 +36,7 @@ class _MainWrapperState extends State<MainWrapper> {
     _pageController = PageController(initialPage: _currentIndex);
   }
 
+  // Maneja la navegación al tocar un ícono en la barra de navegación inferior.
   void _onNavTapped(int index) {
     setState(() => _currentIndex = index);
     _pageController.jumpToPage(index);
