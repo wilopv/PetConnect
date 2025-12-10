@@ -5,6 +5,7 @@
 /// Configura el tema, las rutas y el punto de entrada de la aplicación.
 
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'auth/login_screen.dart';
 import 'auth/signup_screen.dart';
@@ -16,7 +17,9 @@ import 'shared/profile/profile_screen.dart';
 import 'user/screens/conversations/conversation_list_screen.dart';
 import 'user/screens/conversations/conversation_details_screen.dart';
 import 'user/screens/notifications/notifications_screen.dart';
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await _loadEnvIfAvailable();
   runApp(const PetConnectApp());
 }
 
@@ -42,5 +45,14 @@ class PetConnectApp extends StatelessWidget {
         '/notifications': (context) => const NotificationsScreen(),
       },
     );
+  }
+}
+
+/// Intenta cargar el archivo .env solo si está disponible para evitar errores.
+Future<void> _loadEnvIfAvailable() async {
+  try {
+    await dotenv.load(fileName: '.env');
+  } catch (_) {
+    // Silenciamos la excepción si el archivo no existe; se usará la URL por defecto.
   }
 }
