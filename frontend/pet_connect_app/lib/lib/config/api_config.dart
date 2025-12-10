@@ -3,6 +3,5 @@
 // Descripción: Configuración de la API, incluyendo la URL base.
 
 class ApiConfig {
-  static const String baseUrl = 'http://localhost:8000';
-  
+  static const String baseUrl = 'https://petconnect-ffhv.onrender.com'; 
 }
