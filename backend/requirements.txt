@@ -35,3 +35,4 @@ supabase
 python-jose[cryptography]
 python-dotenv
 google-generativeai==0.8.5
+pytest==8.4.1
